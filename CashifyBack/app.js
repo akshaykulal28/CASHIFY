@@ -10,7 +10,7 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY || process.env.STIPE_SECRE
 const stripe = require('stripe')(stripeSecretKey);
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;  
 app.use(cors());
 app.use(express.json());
 
