@@ -1,0 +1,74 @@
+.mu-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.mu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.mu-back-btn,
+.mu-refresh-btn {
+    padding: 7px 16px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.mu-back-btn:hover,
+.mu-refresh-btn:hover {
+    background: #e0e0e0;
+}
+
+.mu-status {
+    text-align: center;
+    padding: 20px;
+    color: #555;
+}
+
+.mu-status-error {
+    text-align: center;
+    padding: 20px;
+    color: red;
+}
+
+.mu-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mu-table th,
+.mu-table td {
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.mu-table th {
+    background: #f0f0f0;
+    font-weight: bold;
+}
+
+.mu-table tr:hover td {
+    background: #fafafa;
+}
+
+.mu-delete-btn {
+    padding: 6px 14px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.mu-delete-btn:hover {
+    background: #e0e0e0;
+}
+
+

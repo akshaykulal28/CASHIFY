@@ -1,0 +1,60 @@
+
+.add-se-container {
+    max-width: 420px;
+    margin: 60px auto;
+    padding: 25px 30px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    font-family: Arial, sans-serif;
+}
+
+.add-se-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+
+.add-se-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+
+.add-se-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+}
+.add-se-form input[type="text"],
+.add-se-form input[type="file"] {
+    padding: 9px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    outline: none;
+}
+
+
+.add-se-form input:focus {
+    border-color: #00897b;
+}
+
+.add-se-btn {
+    margin-top: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background-color: #00897b;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.add-se-btn:hover {
+    background-color: #00695c;
+}

@@ -1,0 +1,83 @@
+.sell-old-section {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 40px 20px 20px;
+}
+
+.sell-section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+}
+
+.sell-old-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 20px;
+}
+
+.sell-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.sell-card:hover {
+  transform: translateY(-4px);
+}
+
+.sell-card-img {
+  width: 140px;
+  height: 140px;
+  background-color: #eef9f7;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.sell-card:hover .sell-card-img {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.sell-card-img img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+}
+
+.sell-card-label {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .sell-old-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .sell-old-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .sell-card-img {
+    width: 110px;
+    height: 110px;
+  }
+
+  .sell-card-img img {
+    width: 80px;
+    height: 80px;
+  }
+}
+

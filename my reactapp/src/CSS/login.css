@@ -1,0 +1,199 @@
+
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.login-container {
+    display: flex;
+    min-height: 420px;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+
+.login-left {
+    width: 170px;
+    background-color: rgb(59, 179, 219);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 15px;
+    text-align: center;
+}
+
+.login-left h3 {
+    color: white;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.login-left-text {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+.login-right {
+    width: 370px;
+    background-color: white;
+    padding: 25px 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.auth-tabs {
+    display: flex;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 18px;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    background: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s, border-bottom 0.2s;
+    border-bottom: 3px solid transparent;
+}
+
+.auth-tab.active {
+    color: rgb(59, 179, 219);
+    border-bottom: 3px solid rgb(59, 179, 219);
+}
+
+.auth-tab:hover {
+    color: rgb(59, 179, 219);
+}
+
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.auth-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgb(59, 179, 219);
+    margin-bottom: 4px;
+    margin-top: 10px;
+}
+
+.auth-input {
+    border: none;
+    border-bottom: 2px solid #ddd;
+    outline: none;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #333;
+    transition: border-color 0.2s;
+    width: 100%;
+}
+
+.auth-input:focus {
+    border-bottom-color: rgb(59, 179, 219);
+}
+
+
+.auth-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.auth-checkbox input[type="checkbox"] {
+    accent-color: rgb(59, 179, 219);
+    margin-top: 3px;
+}
+
+.auth-checkbox-label {
+    font-size: 12px;
+    color: grey;
+    line-height: 1.5;
+}
+
+.auth-checkbox-label a {
+    color: rgb(59, 179, 219);
+    text-decoration: none;
+}
+
+.auth-checkbox-label a:hover {
+    text-decoration: underline;
+}
+
+
+.auth-btn {
+    margin-top: 18px;
+    width: 100%;
+    height: 40px;
+    background-color: rgb(59, 179, 219);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.auth-btn:hover {
+    background-color: rgb(45, 165, 205);
+}
+
+
+.auth-error {
+    background-color: #ffe0e0;
+    color: #c0392b;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 13px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.auth-success {
+    background-color: #e0ffe0;
+    color: #27ae60;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 13px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+
+.auth-switch-text {
+    text-align: center;
+    font-size: 13px;
+    color: #888;
+    margin-top: 14px;
+}
+
+.auth-switch-link {
+    color: rgb(59, 179, 219);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-switch-link:hover {
+    text-decoration: underline;
+}

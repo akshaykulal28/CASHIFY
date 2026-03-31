@@ -1,0 +1,13 @@
+@import './AddProduct.css';
+
+.edit-header {
+    margin-bottom: 12px;
+}
+
+.edit-preview {
+    width: 140px;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+}

@@ -1,0 +1,126 @@
+.cart-page {
+    max-width: 980px;
+    margin: 28px auto;
+    padding: 0 16px 28px;
+    font-family: Arial, sans-serif;
+}
+
+.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.cart-header h2 {
+    margin: 0;
+    color: #1f2937;
+}
+
+.cart-clear-btn,
+.cart-continue-btn,
+.cart-control-btn {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111827;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.cart-clear-btn,
+.cart-continue-btn {
+    padding: 10px 14px;
+}
+
+.cart-clear-btn:hover,
+.cart-continue-btn:hover,
+.cart-control-btn:hover {
+    border-color: #06b6d4;
+}
+
+.cart-empty-state {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 28px;
+    text-align: center;
+    background: #f9fafb;
+}
+
+.cart-empty-state h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.cart-empty-state p {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #6b7280;
+}
+
+.cart-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cart-item {
+    display: grid;
+    grid-template-columns: 120px 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.cart-item-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #f3f4f6;
+}
+
+.cart-item-details h4 {
+    margin: 0 0 6px;
+    color: #111827;
+}
+
+.cart-item-price,
+.cart-item-subtotal {
+    margin: 4px 0;
+    color: #374151;
+}
+
+.cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cart-control-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.cart-qty {
+    min-width: 24px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.cart-summary {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f9fafb;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+}
+
