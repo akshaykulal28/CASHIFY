@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './ViewProduct.css';
 
-const API = 'http://localhost:3000/api/products';
+const API = process.env.API
 
 
 function ViewProduct() {
@@ -27,7 +27,7 @@ function ViewProduct() {
         setLoading(true);
         setError('');
         try {
-            const res = await fetch(`${API}/all`);
+            const res = await fetch(`${API}/api/products/all`);
             const data = await res.json();
             if (res.ok) setProducts(data);
             else setError(data.message || 'Failed to fetch products');
@@ -43,7 +43,7 @@ function ViewProduct() {
         if (!window.confirm('Are you sure you want to delete this product?')) return;
         setDeletingId(id);
         try {
-            const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API}/api/products/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (res.ok) {
                 setProducts(products.filter(p => p._id !== id));
@@ -89,7 +89,7 @@ function ViewProduct() {
                 <tbody>
                     {products.map((product) => (
                         <tr key={product._id}>
-                            <td><img src={`http://localhost:3000/uploads/${product.imageUrl}`} alt={product.name} style={{ width: '120px', height: 'auto' }} /></td>
+                            <td><img src={`${API}/uploads/${product.imageUrl}`} alt={product.name} style={{ width: '120px', height: 'auto' }} /></td>
                             <td>{product.name}</td>
                             <td>{product.price}</td>
                             <td>{product.description}</td>

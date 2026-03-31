@@ -9,6 +9,8 @@ function AddService() {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
+    const API = process.env.API
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -24,7 +26,7 @@ function AddService() {
             payload.append('image', formData.image);
             payload.append('title', formData.title);
 
-            const response = await fetch('http://localhost:3000/api/services/add', {
+            const response = await fetch(`${API}/api/services/add`, {
                 method: 'POST',
                 body: payload
             });

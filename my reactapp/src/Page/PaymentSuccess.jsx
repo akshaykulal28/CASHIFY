@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API = process.env.API
 
 function PaymentSuccess() {
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ function PaymentSuccess() {
           return;
         }
 
-        const verifyRes = await fetch(`${apiBaseUrl}/payment/verify-session?session_id=${encodeURIComponent(sessionId)}`);
+        const verifyRes = await fetch(`${API}/api/payment/verify-session?session_id=${encodeURIComponent(sessionId)}`);
         const verifyData = await verifyRes.json();
 
         if (!verifyRes.ok) {
@@ -73,7 +73,7 @@ function PaymentSuccess() {
             customerEmail: verifyData.customerEmail,
           };
 
-          const orderRes = await fetch(`${apiBaseUrl}/order/add`, {
+          const orderRes = await fetch(`${API}/api/order/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderPayload),
@@ -85,7 +85,7 @@ function PaymentSuccess() {
           }
         }
 
-        const emailRes = await fetch(`${apiBaseUrl}/order/send-confirmation`, {
+        const emailRes = await fetch(`${API}/api/order/send-confirmation`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

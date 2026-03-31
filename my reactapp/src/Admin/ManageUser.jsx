@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ManageUser.css';
 
-const API = 'http://localhost:3000/api/auth/users';
+const API = process.env.API
 
 function ManageUser() {
     const navigate = useNavigate();
@@ -16,7 +16,7 @@ function ManageUser() {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this user?')) return;
         try {
-            const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API}/api/auth/users/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (res.ok) setUsers(users.filter(u => u._id !== id));
             else alert(data.message || 'Failed to delete user.');
@@ -30,7 +30,7 @@ function ManageUser() {
         setLoading(true);
         setError('');
         try {
-            const res = await fetch(API);
+            const res = await fetch(`${API}/api/auth/users/all`);
             const data = await res.json();
             if (res.ok) setUsers(data);
             else setError(data.message || 'Failed to fetch users.');

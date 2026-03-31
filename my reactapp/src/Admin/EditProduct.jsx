@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './EditProduct.css';
 
-const PRODUCT_API = 'http://localhost:3000/api/products';
-const SERVICE_API = 'http://localhost:3000/api/services';
+const API = process.env.API
 
 function EditProduct() {
     const navigate = useNavigate();
@@ -36,8 +35,8 @@ function EditProduct() {
 
         try {
             const [productRes, servicesRes] = await Promise.all([
-                fetch(`${PRODUCT_API}/${id}`),
-                fetch(`${SERVICE_API}/all`)
+                fetch(`${PRODUCT_API}/api/products/${id}`),
+                fetch(`${SERVICE_API}/api/services/all`)
             ]);
 
             const productData = await productRes.json();
@@ -64,7 +63,7 @@ function EditProduct() {
             setTag(productData.tag || '');
             setCategory(productData.category || '');
             setBrand(productData.brand || '');
-            setImagePreview(productData.imageUrl ? `http://localhost:3000/uploads/${productData.imageUrl}` : '');
+            setImagePreview(productData.imageUrl ? `${API}/uploads/${productData.imageUrl}` : '');
             setServices(servicesData);
         } catch {
             setError('Server error. Make sure backend is running.');

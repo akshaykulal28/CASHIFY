@@ -8,7 +8,7 @@ import axios from 'axios';
 
 function Products() {
 
-    const API = 'http://localhost:3000/api/products';
+    const API = process.env.API
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -30,7 +30,7 @@ function Products() {
         setBuyMessage('');
 
         try {
-            const res = await fetch(`${API}/${id}`);
+            const res = await fetch(`${API}/api/products/${id}`);
             const data = await res.json();
             if (res.ok) setProduct(data);
             else setError(data.message || 'Failed to fetch products');  
@@ -78,7 +78,7 @@ function Products() {
         setBuyMessage('');
 
         try {
-            const res = await axios.post('http://localhost:3000/api/order/add', {
+            const res = await axios.post(`${API}/api/order/add`, {
                 quantity: 1,
                 name: product.name,
                 productId: product._id,
@@ -140,7 +140,7 @@ function Products() {
         <div className="Productspage-container">
             <div className="Products-left">
                 <div className="Products-media-card">
-                    <img src={`http://localhost:3000/uploads/${product.imageUrl}`} alt={product.name} />
+                    <img src={`${API}/uploads/${product.imageUrl}`} alt={product.name} />
                     {discountPercent > 0 && <span className="discount-chip">{discountPercent}% OFF</span>}
                 </div>
             </div>

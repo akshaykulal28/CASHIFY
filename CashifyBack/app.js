@@ -116,6 +116,8 @@ app.use('/api/services', ServiceRouter);
 app.use('/api/order', OrderRouter);
 
 
+
+
 app.post('/api/payment/create-payment-intent', async (req, res) => {
   try {
     if (!stripeSecretKey) {
@@ -199,6 +201,7 @@ app.get('/api/payment/checkout-redirect/:sessionId', async (req, res) => {
   }
 });
 
+
 app.get('/api/payment/verify-session', async (req, res) => {
   try {
     if (!stripeSecretKey) {
@@ -241,3 +244,5 @@ app.get('/api/payment/verify-session', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+

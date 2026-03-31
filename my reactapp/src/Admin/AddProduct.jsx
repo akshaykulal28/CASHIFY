@@ -23,7 +23,7 @@ function AddProduct() {
     const [category ,Setcategory] = useState('');
     const [brand ,Setbrand] = useState('');
 
-    const API = 'http://localhost:3000/api/services';
+    const API = process.env.API
 
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
@@ -59,7 +59,7 @@ function AddProduct() {
             payload.append('brand', brand);
 
 
-            const response = await fetch('http://localhost:3000/api/products/add', {
+            const response = await fetch(`${API}/api/products/add`, {
                 method: 'POST',
                 body: payload
             });
@@ -82,7 +82,7 @@ function AddProduct() {
 
     const fetchServices = async () => {
         try {
-            const res = await fetch(`${API}/all`);
+            const res = await fetch(`${API}/api/services/all`);
             const data = await res.json();
             if (res.ok) Setproducts(data);
             else setError(data.message || 'Failed to fetch products');

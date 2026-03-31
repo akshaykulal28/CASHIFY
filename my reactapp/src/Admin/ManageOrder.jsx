@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import './MAnageOrder.css';
-import emailjs from '@emailjs/browser';
-const API = 'http://localhost:3000/api/order/all';
+
+const API = process.env.API
 
 function ManageOrder (){
 
@@ -19,7 +19,7 @@ function ManageOrder (){
         setLoading(true);
         setError('');
         try{
-            const res = await fetch(API)
+            const res = await fetch(`${API}/api/order/all`);
             const data = await res.json();
             if(res.ok) setOrders(data);
             else setError(data.message || 'Failed to fetch orders.');

@@ -11,6 +11,7 @@ function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
+  const API = process.env.API
 
   const resetForm = () => {
     setPhoneNumber('');
@@ -38,7 +39,7 @@ function Login() {
 
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/login', {
+      const res = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phoneNumber, password }),
@@ -82,7 +83,7 @@ function Login() {
     }
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/signup', {
+      const res = await fetch(`${API}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phoneNumber, password }),

@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API = process.env.API
 
 function CheckOut() {
     const navigate = useNavigate();
@@ -23,7 +23,7 @@ function CheckOut() {
         try {
             sessionStorage.setItem('pendingCheckoutItems', JSON.stringify(cartItems));
 
-            const response = await fetch(`${apiBaseUrl}/payment/create-payment-intent`, {
+            const response = await fetch(`${API}/api/payment/create-payment-intent`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ product: cartItems }),
@@ -40,7 +40,7 @@ function CheckOut() {
             }
 
             if (data.id) {
-                window.location.assign(`${apiBaseUrl}/payment/checkout-redirect/${encodeURIComponent(data.id)}`);
+                window.location.assign(`${API}/api/payment/checkout-redirect/${encodeURIComponent(data.id)}`);
                 return;
             }
 

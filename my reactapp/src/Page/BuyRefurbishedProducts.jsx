@@ -3,18 +3,17 @@ import '../CSS/BuyRefurbishedProduct.css';
 import { useNavigate } from "react-router-dom";
 function BuyRefurbishedProducts() {
     
-    const API = 'http://localhost:3000/api/products';
+        const API = process.env.API
         const [products, setProducts] = useState([]);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState('');
         useEffect(() => {fetchProducts();},[]);
         const navigate = useNavigate();
-
         const fetchProducts = async () => {
             setLoading(true);
             setError('');
             try {
-                const res = await fetch(`${API}/all`);
+                const res = await fetch(`${API}/api/products/all`);
                 const data = await res.json();
                 if (res.ok) setProducts(data);
                 else setError(data.message || 'Failed to fetch products');  
@@ -38,7 +37,7 @@ function BuyRefurbishedProducts() {
             <div className="product-grid">
                 {products.map((product) => (
                     <div className="product-card" key={product._id} onClick={() =>navigate(`/products/${product._id}`)}>
-                        <img src={`http://localhost:3000/uploads/${product.imageUrl}`} alt={product.name} />
+                        <img src={`${API}/uploads/${product.imageUrl}`} alt={product.name} />
                         <p className="offer">-{Math.round((1 - product.price / product.originalPrice) * 100)}% OFF</p>
                         <h4>{product.name}</h4>
 

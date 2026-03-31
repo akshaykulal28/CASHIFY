@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function ViewService() {
-    const API = 'http://localhost:3000/api/services';
+    const API = process.env.API
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -13,7 +13,7 @@ function ViewService() {
         setLoading(true);
         setError('');
         try {
-            const res = await fetch(`${API}/all`);
+            const res = await fetch(`${API}/api/services/all`);
             const data = await res.json();
             if (res.ok) setProducts(data);
             else setError(data.message || 'Failed to fetch products');

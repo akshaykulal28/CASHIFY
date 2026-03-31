@@ -30,7 +30,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
-const API = 'http://localhost:3000/api/services';
+const API = process.env.API
 
 function OurService() {
 
@@ -45,7 +45,7 @@ function OurService() {
     setLoading(true);
     setError('');
     try{
-      const res = await fetch(`${API}/all`);
+      const res = await fetch(`${API}/api/services/all`);
       const data =await res.json();
       if(res.ok) setProducts(data);
       else setError(data.message || 'Failed to fetch Products');
@@ -64,7 +64,7 @@ function OurService() {
         {products.map((product) => (
           <div className="service-card">
             <div className="service-card-img">
-              <img src={`http://localhost:3000/uploads/${product.ImageUrl}`} alt={product.Title} />
+              <img src={`${API}/uploads/${product.ImageUrl}`} alt={product.Title} />
             </div>
             <span className="service-card-label">{product.Title}</span>
           </div>
