@@ -246,3 +246,19 @@ app.listen(port, () => {
 });
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+app.use(cors({
+  origin: "https://cashify-gamma.vercel.app"
+}));
