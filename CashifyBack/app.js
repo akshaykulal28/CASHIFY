@@ -9,6 +9,8 @@ const OrderRouter = require('./routes/OrderRouter');
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || process.env.STIPE_SECRET_KEY;
 const stripe = require('stripe')(stripeSecretKey);
 
+//app.use(cors({ origin: "https://cashify-gamma.vercel.app" }));
+
 const app = express();
 const port = process.env.PORT || 3000;  
 app.use(cors());
@@ -252,21 +254,3 @@ app.get('/api/payment/verify-session', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-app.use(cors({
-  origin: "https://cashify-gamma.vercel.app"
-}));
