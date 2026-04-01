@@ -31,7 +31,7 @@ function ManageUser() {
         setLoading(true);
         setError('');
         try {
-            const res = await fetch(`${API}/api/auth/users/all`);
+            const res = await fetch(`${API}/api/auth/users`);
             const data = await res.json();
             if (res.ok) setUsers(data);
             else setError(data.message || 'Failed to fetch users.');
