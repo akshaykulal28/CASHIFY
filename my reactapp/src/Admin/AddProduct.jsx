@@ -15,6 +15,7 @@ function AddProduct() {
     const [image ,Setimage] = useState(null);
     const [name ,Setname] = useState('');
     const [type ,Settype] =useState('');
+    const [varity ,Setvarity] =useState('');
     const [description ,Setdescription] = useState('');
     const [price ,Setprice] = useState('');
     const [originalPrice ,SetoriginalPrice] = useState('');
@@ -123,6 +124,15 @@ function AddProduct() {
                     <option value="Phone">Phone</option>
                     <option value="Laptop">Laptop</option>
                 </select>
+                
+
+                <label className="addproduct-label">Varity</label>
+                <select value={varity} onChange={(e) =>Setvarity(e.target.value)} className="addproduct-label" required>
+                    <option value="">Select Varity</option>
+                    <option value="New">New</option>
+                    <option value="Used">Refurbished</option>
+                </select>
+
 
                 <label className="addproduct-label">Description</label>
                 <textarea

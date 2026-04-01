@@ -33,6 +33,8 @@ router.post('/add', upload.single("image"), (req , res) =>{
     const category = req.body.category;
     const brand = req.body.brand;
     const type = req.body.type;
+    const varity = req.body.varity;
+
 
     const newProduct = {
         imageUrl,
@@ -44,7 +46,8 @@ router.post('/add', upload.single("image"), (req , res) =>{
         tag,
         category,
         brand,
-        type
+        type,
+        varity
     }
     const product = new Product(newProduct);
 
@@ -80,10 +83,11 @@ router.put('/:id', upload.single('image'), async (req, res) => {
             tag,
             category,
             brand,
-            type
+            type,
+            varity
         } = req.body;
 
-        if (!imageUrl || !name || !description || !price || !originalPrice || !rating || !tag || !category || !brand || !type) {
+        if (!imageUrl || !name || !description || !price || !originalPrice || !rating || !tag || !category || !brand || !type || !varity) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
@@ -107,7 +111,8 @@ router.put('/:id', upload.single('image'), async (req, res) => {
                 tag,
                 category,
                 brand,
-                type
+                type,
+                varity
             },
             { new: true, runValidators: true }
         );
