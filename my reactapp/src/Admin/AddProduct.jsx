@@ -58,6 +58,7 @@ function AddProduct() {
             payload.append('tag', tag);
             payload.append('category', category);
             payload.append('brand', brand);
+            payload.append('varity', varity);
 
 
             const response = await fetch(`${API}/api/products/add`, {
