@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './ViewProduct.css';
 
-const API = process.env.API
+const API = import.meta.env.VITE_API
 
 
 function ViewProduct() {

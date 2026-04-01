@@ -8,7 +8,7 @@ import axios from 'axios';
 
 function Products() {
 
-    const API = process.env.API
+    const API = import.meta.env.VITE_API
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -53,7 +53,7 @@ function Products() {
 //             payload.append('quantity', 1);
 //             payload.append('name',product.name)
 
-//             const res = await fetch('http://localhost:3000/api/order/add', {
+//             const res = await fetch(`${API}/api/order/add`, {
 //                 method : 'POST',
 //                 body:payload
 //             });

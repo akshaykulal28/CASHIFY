@@ -86,6 +86,41 @@ async function sendOrderConfirmationEmail({ to, orders, sessionId, currency = 'I
   });
 }
 
+async function sendDeliveryStatusEmail({ to, orderName, deliveryStatus }) {
+  if (!transporter) {
+    throw new Error('Email service is not configured. Please set SMTP_HOST, SMTP_USER and SMTP_PASS.');
+  }
+
+  if (!mailFrom) {
+    throw new Error('MAIL_FROM is missing.');
+  }
+
+  const statusMessage = {
+    delivered: 'Your order has been delivered! Thank you for shopping with us.',
+    shipped: 'Your order is on the way! You can expect it soon.',
+    pending: 'Your order is being prepared for shipment.',
+  };
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.5;">
+      <h2>Order Status Update</h2>
+      <p>Dear Customer,</p>
+      <p><strong>Item:</strong> ${orderName}</p>
+      <p><strong>Status:</strong> <span style="color:#28a745;font-weight:bold;">${deliveryStatus.charAt(0).toUpperCase() + deliveryStatus.slice(1)}</span></p>
+      <p>${statusMessage[deliveryStatus] || 'Your order status has been updated.'}</p>
+      <p>Thank you for your patience!</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: mailFrom,
+    to,
+    subject: `Order Status Update - ${deliveryStatus.charAt(0).toUpperCase() + deliveryStatus.slice(1)}`,
+    html,
+  });
+}
+
 module.exports = {
   sendOrderConfirmationEmail,
+  sendDeliveryStatusEmail,
 };

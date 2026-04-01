@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import './MAnageOrder.css';
 
-const API = process.env.API
+const API = import.meta.env.VITE_API
 
 function ManageOrder (){
 
@@ -12,6 +12,8 @@ function ManageOrder (){
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [updatingOrderId, setUpdatingOrderId] = useState(null);
+    const [updateError, setUpdateError] = useState('');
 
     useEffect( () => { fetchOrders (); }, []);
 
@@ -30,6 +32,36 @@ function ManageOrder (){
         }
     };
 
+    const handleDeliveryStatusChange = async (orderId, newStatus, customerEmail, orderName) => {
+        setUpdatingOrderId(orderId);
+        setUpdateError('');
+        
+        try {
+            const res = await fetch(`${API}/api/order/update-delivery-status/${orderId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deliveryStatus: newStatus }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                // Update local state
+                setOrders(orders.map(order => 
+                    order._id === orderId ? { ...order, deliveryStatus: newStatus } : order
+                ));
+                alert(`Order status updated to ${newStatus}${customerEmail ? ' and email sent to customer.' : '.'}`);
+            } else {
+                setUpdateError(data.message || 'Failed to update delivery status.');
+                alert('Error: ' + (data.message || 'Failed to update delivery status.'));
+            }
+        } catch (err) {
+            setUpdateError('Server error. Make sure the backend is running.');
+            alert('Error: Server error. Make sure the backend is running.');
+        } finally {
+            setUpdatingOrderId(null);
+        }
+    };
+
     
     
 
@@ -43,6 +75,7 @@ function ManageOrder (){
                 </div>
                 {loading && <p className="mo-status">Loading Orders details..</p>  }
                 {error && <p className="mo-status-error">{error}</p>}
+                {updateError && <p className="mo-status-error">{updateError}</p>}
 
                 {!loading && !error && orders.length === 0 && (
                     <p className="mo-status">No orders found..</p>
@@ -63,7 +96,7 @@ function ManageOrder (){
                             </tr>
                         
                             {orders.map((user, index) => (
-                                <tr >
+                                <tr key={user._id || index}>
                                     <td>{index + 1}</td>
                                     <td>{user.productId}</td>
                                     <td>{user.name}</td>
@@ -72,7 +105,11 @@ function ManageOrder (){
                                     <td>{user.totalAmount}</td>
                                     <td>{user.paymentStatus}</td>
                                     <td>
-                                        <select value={user.deliveryStatus} onChange={() => {sendMail}}>
+                                        <select 
+                                            value={user.deliveryStatus || 'pending'} 
+                                            onChange={(e) => handleDeliveryStatusChange(user._id, e.target.value, user.customerEmail, user.name)}
+                                            disabled={updatingOrderId === user._id}
+                                        >
                                             <option value="pending">Pending</option>
                                             <option value="shipped">Shipped</option>
                                             <option value="delivered">Delivered</option>

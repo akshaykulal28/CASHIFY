@@ -15,12 +15,14 @@ function AddToCart() {
 
     const totalItems = cartItems.reduce((count, item) => count + item.quantity, 0);
 
+    const API = import.meta.env.VITE_API
+
     
     // const handelbuy = async () => {
     //     setBuyLoading(true);
     //     setBuyMessage('');
     //     try {
-    //         const res = await fetch('http://localhost:3000/api/order/add',  {
+    //         const res = await fetch(`${API}/api/order/add`,  {
     //             method: 'POST',
     //             headers:{
     //                 'Content-Type': 'application/json',
@@ -50,7 +52,7 @@ function AddToCart() {
     //     setBuyMessage('');
     //     try {
     //         for (const item of cartItems) {
-    //             const res = await fetch('http://localhost:3000/api/order/add',  {
+    //             const res = await fetch(`${API}/api/order/add`,  {
     //                 method: 'POST',
     //                 headers:{
     //                     'Content-Type': 'application/json',
@@ -81,7 +83,7 @@ function AddToCart() {
 
     // const handelCheckout = async () => {
     //     const stripe = await loadStripe("pk_test_51TER3pKbt9d3zWKBunNQCHQtNhsW4y5ZDirQJ8u3ZnzBmuzgX4ByjhfFi6FkUCySE1vfvGGkKoTpsDVt6Qn1hrkb00kMVre68K")
-    //     const response = await fetch('http://localhost:3000/api/payment/create', {
+    //     const response = await fetch(`${API}/api/payment/create`, {
     //         method: 'POST',
     //         headers: { 'Content-Type': 'application/json' },
     //         body: JSON.stringify({ product: cartItems })
@@ -98,7 +100,7 @@ function AddToCart() {
     // const handelCheckout = async () => {
     //     const stripe = await loadStripe("pk_test_51TER3pKbt9d3zWKBunNQCHQtNhsW4y5ZDirQJ8u3ZnzBmuzgX4ByjhfFi6FkUCySE1vfvGGkKoTpsDVt6Qn1hrkb00kMVre68K");
     //     try {
-    //         const response = await fetch('http://localhost:3000/api/payment/create', {
+    //         const response = await fetch(`${API}/api/payment/create`, {
     //             method: 'POST',
     //             headers: { 'Content-Type': 'application/json' },
     //             body: JSON.stringify({ product: cartItems })
@@ -139,7 +141,7 @@ function AddToCart() {
                     <div className="cart-items-list">
                         {cartItems.map((item) => (
                             <div className="cart-item" key={item._id || item.id}>
-                                <img src={`http://localhost:3000/uploads/${item.imageUrl}`} alt={item.name} className="cart-item-image"/>
+                                <img src={`${API}/uploads/${item.imageUrl}`} alt={item.name} className="cart-item-image"/>
                                 <div className="cart-item-details">
                                     <h4>{item.name}</h4>
                                     <p className="cart-item-price">Rs. {item.price}</p>

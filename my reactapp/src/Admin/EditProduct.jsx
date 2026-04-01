@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './EditProduct.css';
 
-const API = process.env.API
+const API = import.meta.env.VITE_API
 
 function EditProduct() {
     const navigate = useNavigate();

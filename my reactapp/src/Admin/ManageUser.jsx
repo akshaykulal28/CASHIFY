@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ManageUser.css';
 
-const API = process.env.API
+const API = import.meta.env.VITE_API
 
 function ManageUser() {
     const navigate = useNavigate();

@@ -14,7 +14,11 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/cashify';
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error('Missing MONGO_URI environment variable.');
+  process.exit(1);
+}
 mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
@@ -141,7 +145,11 @@ app.post('/api/payment/create-payment-intent', async (req, res) => {
       const imageUrl = item.imageurl || item.imageUrl || '';
       const productData = { name: item.name };
       if (imageUrl) {
-        productData.images = [imageUrl.startsWith('http') ? imageUrl : `${process.env.SERVER_URL || 'http://localhost:3000'}/uploads/${imageUrl}`];
+        const serverUrl = (process.env.SERVER_URL || '').replace(/\/$/, '');
+        const resolvedImageUrl = imageUrl.startsWith('http') || !serverUrl
+          ? imageUrl
+          : `${serverUrl}/uploads/${imageUrl}`;
+        productData.images = [resolvedImageUrl];
       }
 
       return {
@@ -154,7 +162,7 @@ app.post('/api/payment/create-payment-intent', async (req, res) => {
       };
     });
 
-    const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+    const clientUrl = (process.env.CLIENT_URL || 'https://cashify-gamma.vercel.app').replace(/\/$/, '');
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
@@ -242,7 +250,7 @@ app.get('/api/payment/verify-session', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });
 
 

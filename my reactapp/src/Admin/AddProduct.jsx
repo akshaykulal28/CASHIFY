@@ -23,7 +23,7 @@ function AddProduct() {
     const [category ,Setcategory] = useState('');
     const [brand ,Setbrand] = useState('');
 
-    const API = process.env.API
+    const API = import.meta.env.VITE_API
 
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');

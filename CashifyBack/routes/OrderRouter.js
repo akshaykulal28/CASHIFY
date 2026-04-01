@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const Order = require('../models/Order');
-const { sendOrderConfirmationEmail } = require('../utils/mailService');
+const { sendOrderConfirmationEmail, sendDeliveryStatusEmail } = require('../utils/mailService');
 
 
 
@@ -95,6 +95,51 @@ router.get('/all', async (req,res) => {
         res.status(200).json(order);
     } catch (error) {
         res.status(500).json({ message: 'Server error1', error: error.message });
+    }
+});
+
+router.patch('/update-delivery-status/:orderId', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { deliveryStatus } = req.body;
+
+        if (!orderId || !deliveryStatus) {
+            return res.status(400).json({ message: 'orderId and deliveryStatus are required.' });
+        }
+
+        const validStatuses = ['pending', 'shipped', 'delivered'];
+        if (!validStatuses.includes(deliveryStatus)) {
+            return res.status(400).json({ message: 'Invalid delivery status. Must be pending, shipped, or delivered.' });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            { deliveryStatus },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found.' });
+        }
+
+        // Send email notification to customer
+        if (order.customerEmail) {
+            try {
+                await sendDeliveryStatusEmail({
+                    to: order.customerEmail,
+                    orderName: order.name,
+                    deliveryStatus,
+                });
+            } catch (emailErr) {
+                console.error('Failed to send delivery status email:', emailErr);
+                // Don't fail the order update if email fails
+            }
+        }
+
+        return res.status(200).json({ message: `Order status updated to ${deliveryStatus} and email sent.`, order });
+    } catch (err) {
+        console.error('Update delivery status error:', err);
+        return res.status(500).json({ message: 'Failed to update delivery status.' });
     }
 });
 
