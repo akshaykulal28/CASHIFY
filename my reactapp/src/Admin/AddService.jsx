@@ -9,7 +9,7 @@ function AddService() {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
-    const API = import.meta.env.VITE_API
+    const API = import.meta.env.VITE_API;
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

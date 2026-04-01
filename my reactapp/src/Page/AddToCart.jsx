@@ -15,7 +15,7 @@ function AddToCart() {
 
     const totalItems = cartItems.reduce((count, item) => count + item.quantity, 0);
 
-    const API = import.meta.env.VITE_API
+    const API = import.meta.env.VITE_API;
 
     
     // const handelbuy = async () => {

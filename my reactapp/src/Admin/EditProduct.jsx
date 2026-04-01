@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './EditProduct.css';
 
-const API = import.meta.env.VITE_API
+
 
 function EditProduct() {
     const navigate = useNavigate();
     const { id } = useParams();
+
+    const API = import.meta.env.VITE_API;
 
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState('');

@@ -8,7 +8,7 @@ import axios from 'axios';
 
 function Products() {
 
-    const API = import.meta.env.VITE_API
+    const API = import.meta.env.VITE_API;
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');

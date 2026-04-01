@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ManageUser.css';
 
-const API = import.meta.env.VITE_API
+
 
 function ManageUser() {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const API = import.meta.env.VITE_API;
 
     useEffect(() => { fetchUsers(); }, []);
 

@@ -2,13 +2,14 @@ import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
 
-const API = import.meta.env.VITE_API
+
 
 function CheckOut() {
     const navigate = useNavigate();
     const { cartItems, getCartTotal } = useContext(CartContext);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const API = import.meta.env.VITE_API;
 
     
     const handleHostedCheckout = async () => {

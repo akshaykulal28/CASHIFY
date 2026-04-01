@@ -30,9 +30,10 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
-const API = import.meta.env.VITE_API
+
 
 function OurService() {
+  const API = import.meta.env.VITE_API;
 
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);

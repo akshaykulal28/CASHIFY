@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './ViewProduct.css';
 
-const API = import.meta.env.VITE_API
+
 
 
 function ViewProduct() {
+    const API = import.meta.env.VITE_API;
     const navigate = useNavigate();
     const location = useLocation();
     const [products, setProducts] = useState([]);

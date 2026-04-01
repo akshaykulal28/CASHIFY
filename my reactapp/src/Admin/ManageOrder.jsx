@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import './MAnageOrder.css';
 
-const API = import.meta.env.VITE_API
+
 
 function ManageOrder (){
 
@@ -14,6 +14,7 @@ function ManageOrder (){
     const [error, setError] = useState('');
     const [updatingOrderId, setUpdatingOrderId] = useState(null);
     const [updateError, setUpdateError] = useState('');
+    const API = import.meta.env.VITE_API;
 
     useEffect( () => { fetchOrders (); }, []);
 

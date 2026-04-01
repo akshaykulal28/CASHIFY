@@ -3,7 +3,7 @@ import '../CSS/BuyRefurbishedProduct.css';
 import { useNavigate } from "react-router-dom";
 function BuyRefurbishedProducts() {
     
-        const API = import.meta.env.VITE_API
+        const API = import.meta.env.VITE_API;
         const [products, setProducts] = useState([]);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState('');

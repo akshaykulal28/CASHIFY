@@ -2,12 +2,13 @@ import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
 
-const API = import.meta.env.VITE_API
+
 
 function PaymentSuccess() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { cartItems, clearCart } = useContext(CartContext);
+  const API = import.meta.env.VITE_API;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

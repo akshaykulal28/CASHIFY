@@ -11,7 +11,7 @@ function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API
+  const API = import.meta.env.VITE_API;
 
   const resetForm = () => {
     setPhoneNumber('');
