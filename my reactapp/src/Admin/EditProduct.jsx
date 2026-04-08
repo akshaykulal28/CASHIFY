@@ -14,6 +14,7 @@ function EditProduct() {
     const [imagePreview, setImagePreview] = useState('');
     const [name, setName] = useState('');
     const [type, setType] = useState('');
+    const [varity ,Setvarity] =useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
     const [originalPrice, setOriginalPrice] = useState('');
@@ -58,6 +59,7 @@ function EditProduct() {
 
             setName(productData.name || '');
             setType(productData.type || '');
+            setVarity(productData.varity || '');
             setDescription(productData.description || '');
             setPrice(productData.price || '');
             setOriginalPrice(productData.originalPrice || '');
@@ -84,6 +86,7 @@ function EditProduct() {
             if (image) payload.append('image', image);
             payload.append('name', name);
             payload.append('type', type);
+            payload.append('varity', varity);
             payload.append('description', description);
             payload.append('price', price);
             payload.append('originalPrice', originalPrice);
@@ -92,7 +95,7 @@ function EditProduct() {
             payload.append('category', category);
             payload.append('brand', brand);
 
-            const res = await fetch(`${PRODUCT_API}/${id}`, {
+            const res = await fetch(`${API}/${id}`, {
                 method: 'PUT',
                 body: payload
             });
@@ -150,6 +153,13 @@ function EditProduct() {
                     <option value="">Select Product Type</option>
                     <option value="Phone">Phone</option>
                     <option value="Laptop">Laptop</option>
+                </select>
+
+                <label className="addproduct-label">Product Varity</label>
+                <select value={varity} onChange={(e) => setVarity(e.target.value)} className="addproduct-label" required>
+                    <option value="">Select Varity</option>
+                    <option value="New">New</option>
+                    <option value="Used">Refurbished</option>
                 </select>
 
                 <label className="addproduct-label">Description</label>
