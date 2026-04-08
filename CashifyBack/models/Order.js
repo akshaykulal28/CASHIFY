@@ -25,6 +25,38 @@ const orderSchema = new mongoose.Schema({
         trim: true,
         lowercase: true,
     },
+    shippingAddress: {
+        fullName: {
+            type: String,
+            trim: true,
+            required: true,
+        },
+        street: {
+            type: String,
+            trim: true,
+            required: true,
+        },
+        city: {
+            type: String,
+            trim: true,
+            required: true,
+        },
+        state: {
+            type: String,
+            trim: true,
+            required: true,
+        },
+        postalCode: {
+            type: String,
+            trim: true,
+            required: true,
+        },
+        country: {
+            type: String,
+            trim: true,
+            required: true,
+        },
+    },
     stripeSessionId: {
         type: String,
     },

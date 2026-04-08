@@ -130,10 +130,21 @@ app.post('/api/payment/create-payment-intent', async (req, res) => {
       return res.status(500).json({ message: 'Stripe is not configured on server.' });
     }
 
-    const { product } = req.body;
+    const { product, shippingAddress } = req.body;
 
     if (!Array.isArray(product) || product.length === 0) {
       return res.status(400).json({ message: 'Product list is required.' });
+    }
+
+    const requiredAddressFields = ['fullName', 'street', 'city', 'state', 'postalCode', 'country'];
+    const normalizedAddress = requiredAddressFields.reduce((accumulator, field) => {
+      accumulator[field] = typeof shippingAddress?.[field] === 'string' ? shippingAddress[field].trim() : '';
+      return accumulator;
+    }, {});
+
+    const missingAddressField = requiredAddressFields.find((field) => !normalizedAddress[field]);
+    if (missingAddressField) {
+      return res.status(400).json({ message: 'Shipping address is required.' });
     }
 
     const lineItems = product.map((item) => {
@@ -169,6 +180,14 @@ app.post('/api/payment/create-payment-intent', async (req, res) => {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
+      metadata: {
+        shippingFullName: normalizedAddress.fullName,
+        shippingStreet: normalizedAddress.street,
+        shippingCity: normalizedAddress.city,
+        shippingState: normalizedAddress.state,
+        shippingPostalCode: normalizedAddress.postalCode,
+        shippingCountry: normalizedAddress.country,
+      },
       success_url: `${clientUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${clientUrl}/payment-cancel`,
     });
@@ -229,6 +248,14 @@ app.get('/api/payment/verify-session', async (req, res) => {
 
     const customerEmail = session.customer_details?.email || session.customer_email || null;
     const customerName = session.customer_details?.name || null;
+    const shippingAddress = {
+      fullName: session.metadata?.shippingFullName || null,
+      street: session.metadata?.shippingStreet || null,
+      city: session.metadata?.shippingCity || null,
+      state: session.metadata?.shippingState || null,
+      postalCode: session.metadata?.shippingPostalCode || null,
+      country: session.metadata?.shippingCountry || null,
+    };
 
     const lineItems = session.line_items?.data?.map((lineItem) => ({
       name: lineItem.description,
@@ -243,6 +270,7 @@ app.get('/api/payment/verify-session', async (req, res) => {
       currency: session.currency,
       customerEmail,
       customerName,
+      shippingAddress,
       lineItems,
     });
   } catch (err) {

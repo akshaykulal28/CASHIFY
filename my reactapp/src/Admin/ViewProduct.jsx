@@ -59,7 +59,7 @@ function ViewProduct() {
     };
 
     return (
-        <div className="container">
+        <div className="VP-container">
             <div className="header1">
                 <button className="back-btn" onClick={() => navigate('/AdminPanel')}> Back</button>
                 <h2>All Products</h2>
@@ -73,7 +73,9 @@ function ViewProduct() {
             {!loading && !error && products.length === 0 && (
                 <p className="status">No products found. Add some from the Admin Panel.</p>
             )}
-            
+            {!loading && !error && products.length > 0 && (
+                <>
+                
             <table>
                 <thead>
                     <tr>
@@ -102,6 +104,8 @@ function ViewProduct() {
                     ))}
                 </tbody>
             </table>
+                </>
+            )}
 
         </div>
     );

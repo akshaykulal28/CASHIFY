@@ -45,6 +45,19 @@ function buildEmailHtml(orders, sessionId, currency, total) {
     })
     .join('');
 
+  const shippingAddress = orders.find((order) => order.shippingAddress)?.shippingAddress || null;
+  const shippingAddressHtml = shippingAddress
+    ? `
+      <div style="margin-top:16px;padding:12px;border:1px solid #ddd;border-radius:8px;">
+        <h3 style="margin:0 0 8px;">Shipping Address</h3>
+        <p style="margin:0;">${shippingAddress.fullName || ''}</p>
+        <p style="margin:0;">${shippingAddress.street || ''}</p>
+        <p style="margin:0;">${[shippingAddress.city, shippingAddress.state, shippingAddress.postalCode].filter(Boolean).join(', ')}</p>
+        <p style="margin:0;">${shippingAddress.country || ''}</p>
+      </div>
+    `
+    : '';
+
   return `
     <div style="font-family:Arial,sans-serif;line-height:1.5;">
       <h2>Order Confirmation</h2>
@@ -61,6 +74,7 @@ function buildEmailHtml(orders, sessionId, currency, total) {
         </thead>
         <tbody>${rows}</tbody>
       </table>
+      ${shippingAddressHtml}
       <p style="margin-top:12px;"><strong>Grand Total:</strong> ${formatCurrency(total)} ${currency}</p>
       <p>Thank you for shopping with us.</p>
     </div>

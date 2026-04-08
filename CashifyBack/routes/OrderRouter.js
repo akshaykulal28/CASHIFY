@@ -14,10 +14,21 @@ router.post('/add', async (req, res) => {
         // }
 
 
-        const { quantity, name, productId, price, totalAmount, stripeSessionId, paymentStatus, customerEmail } = req.body;
+        const { quantity, name, productId, price, totalAmount, stripeSessionId, paymentStatus, customerEmail, shippingAddress } = req.body;
+
+        const requiredAddressFields = ['fullName', 'street', 'city', 'state', 'postalCode', 'country'];
+        const normalizedAddress = requiredAddressFields.reduce((accumulator, field) => {
+            accumulator[field] = typeof shippingAddress?.[field] === 'string' ? shippingAddress[field].trim() : '';
+            return accumulator;
+        }, {});
 
         if (!quantity || !name || !productId || !price) {
             return res.status(400).json({ message: 'quantity, name, productId and price are required.' });
+        }
+
+        const missingAddressField = requiredAddressFields.find((field) => !normalizedAddress[field]);
+        if (missingAddressField) {
+            return res.status(400).json({ message: 'shippingAddress is required.' });
         }
         
         const newOrder = new Order({
@@ -29,6 +40,7 @@ router.post('/add', async (req, res) => {
             stripeSessionId,
             paymentStatus,
             customerEmail,
+            shippingAddress: normalizedAddress,
         });
         await newOrder.save();
         res.status(201).json({ message: 'Order created successfully.', order: newOrder });
@@ -69,12 +81,15 @@ router.post('/send-confirmation', async (req, res) => {
             return sum + (Number(order.price || 0) * Number(order.quantity || 0));
         }, 0);
 
+        const shippingAddress = sessionOrders.find((order) => order.shippingAddress)?.shippingAddress || null;
+
         await sendOrderConfirmationEmail({
             to,
             orders: sessionOrders,
             sessionId: stripeSessionId,
             currency,
             totalAmount: computedTotal,
+            shippingAddress,
         });
 
         await Order.updateMany(

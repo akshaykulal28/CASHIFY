@@ -1,0 +1,31 @@
+.VS-container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.VS-header1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.VS-back-btn,
+.VS-refresh-btn {
+    padding: 7px 16px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.VS-back-btn:hover,
+.VS-refresh-btn:hover {
+    background: #e0e0e0;
+}
+.VS-status {
+    text-align: center;
+    padding: 20px;
+    color: #555;
+}

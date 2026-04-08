@@ -34,6 +34,7 @@ function PaymentSuccess() {
           setPaymentMeta({ sessionId });
           clearCart();
           sessionStorage.removeItem('pendingCheckoutItems');
+          sessionStorage.removeItem('pendingCheckoutAddress');
           setLoading(false);
           return;
         }
@@ -51,6 +52,13 @@ function PaymentSuccess() {
 
         if (!verifyData.customerEmail) {
           throw new Error('Payment completed, but customer email was not found in Stripe session.');
+        }
+
+        const storedAddress = JSON.parse(sessionStorage.getItem('pendingCheckoutAddress') || 'null');
+        const shippingAddress = verifyData.shippingAddress || storedAddress;
+
+        if (!shippingAddress?.fullName || !shippingAddress?.street || !shippingAddress?.city || !shippingAddress?.state || !shippingAddress?.postalCode || !shippingAddress?.country) {
+          throw new Error('Payment completed, but shipping address was not found.');
         }
 
         const persistedItems = JSON.parse(sessionStorage.getItem('pendingCheckoutItems') || '[]');
@@ -79,6 +87,7 @@ function PaymentSuccess() {
             stripeSessionId: verifyData.sessionId,
             paymentStatus: verifyData.paymentStatus,
             customerEmail: verifyData.customerEmail,
+            shippingAddress,
           };
 
           const orderRes = await fetch(`${API}/api/order/add`, {
@@ -110,10 +119,12 @@ function PaymentSuccess() {
 
         sessionStorage.setItem(processedKey, '1');
         sessionStorage.removeItem('pendingCheckoutItems');
+        sessionStorage.removeItem('pendingCheckoutAddress');
         clearCart();
         setPaymentMeta({
           sessionId: verifyData.sessionId,
           customerEmail: verifyData.customerEmail,
+          shippingAddress,
         });
         setMessage('Payment successful, your order has been placed, and a confirmation email was sent.');
 
@@ -160,6 +171,14 @@ function PaymentSuccess() {
               <>
                 <span className="meta-label">Receipt Sent To</span>
                 <span className="meta-value">{paymentMeta.customerEmail}</span>
+              </>
+            )}
+            {paymentMeta.shippingAddress && (
+              <>
+                <span className="meta-label">Shipping Address</span>
+                <span className="meta-value">
+                  {paymentMeta.shippingAddress.fullName}, {paymentMeta.shippingAddress.street}, {paymentMeta.shippingAddress.city}, {paymentMeta.shippingAddress.state}, {paymentMeta.shippingAddress.postalCode}, {paymentMeta.shippingAddress.country}
+                </span>
               </>
             )}
           </div>
