@@ -1,0 +1,69 @@
+.checkout-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 24px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+.checkout-container h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #1a1a1a;
+}
+.checkout-container p {
+  font-size: 15px;
+  color: #444;
+  margin: 8px 0;
+}
+
+
+.checkout-error {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.checkout-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.checkout-actions button {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.checkout-actions button:first-child {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.checkout-actions button:first-child:hover {
+  background-color: #d5d5d5;
+}
+
+.checkout-actions button:last-child {
+  background-color: #635bff;
+  color: white;
+}
+
+.checkout-actions button:last-child:hover {
+  background-color: #4b44e0;
+}
+
+.checkout-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

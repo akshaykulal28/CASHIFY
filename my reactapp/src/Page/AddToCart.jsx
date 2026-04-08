@@ -2,20 +2,33 @@
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
-import { useState } from 'react';
 import '../CSS/AddToCart.css';
 
 
 function AddToCart() {
     const navigate = useNavigate();
-    const [error, setError] = useState('');
-    const [buyLoading, setBuyLoading] = useState(false);
-    const [buyMessage, setBuyMessage] = useState('');
     const { cartItems, addToCart, removeFromCart, clearCart, getCartTotal } = useContext(CartContext);
 
     const totalItems = cartItems.reduce((count, item) => count + item.quantity, 0);
 
     const API = import.meta.env.VITE_API;
+    const fallbackImage = "data:image/svg+xml," + encodeURIComponent(
+        "<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><rect width='100%' height='100%' fill='#f3f4f6'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#6b7280' font-family='Arial' font-size='14'>No Image</text></svg>"
+    );
+
+    const getItemImageSrc = (item) => {
+        const imageValue = item.imageUrl || item.ImageUrl || item.ImageURL || '';
+
+        if (!imageValue) return fallbackImage;
+
+        if (/^https?:\/\//i.test(imageValue) || imageValue.startsWith('data:')) {
+            return imageValue;
+        }
+
+        if (!API) return fallbackImage;
+
+        return `${API}/uploads/${imageValue}`;
+    };
 
     
     // const handelbuy = async () => {
@@ -123,13 +136,6 @@ function AddToCart() {
 
     return (
         <div className="cart-page">
-            <div className="cart-header">
-                <h2>Your Cart</h2>
-                {cartItems.length > 0 && (
-                    <button className="cart-clear-btn" onClick={clearCart}>Clear Cart</button>
-                )}
-            </div>
-
             {cartItems.length === 0 ? (
                 <div className="cart-empty-state">
                     <h3>Your cart is empty</h3>
@@ -138,34 +144,68 @@ function AddToCart() {
                 </div>
             ) : (
                 <>
-                    <div className="cart-items-list">
-                        {cartItems.map((item) => (
-                            <div className="cart-item" key={item._id || item.id}>
-                                <img src={`${API}/uploads/${item.imageUrl}`} alt={item.name} className="cart-item-image"/>
-                                <div className="cart-item-details">
-                                    <h4>{item.name}</h4>
-                                    <p className="cart-item-price">Rs. {item.price}</p>
-                                    <p className="cart-item-subtotal">
-                                        Subtotal: Rs. {(Number(item.price) || 0) * item.quantity}
-                                    </p>
-                                </div>
+                    <div className="cart-header">
+                        <h2>{totalItems} Item{totalItems > 1 ? 's' : ''} in Cart</h2>
+                        <button className="cart-clear-btn" onClick={clearCart}>Clear Cart</button>
+                    </div>
 
-                                <div className="cart-item-controls">
-                                    <button className="cart-control-btn" onClick={() => removeFromCart(item)}>-</button>
-                                    <span className="cart-qty">{item.quantity}</span>
-                                    <button className="cart-control-btn" onClick={() => addToCart(item)}>+</button>
-                                </div>
+                    <div className="cart-layout">
+                        <section className="cart-left-panel">
+                            <div className="cart-items-list">
+                                {cartItems.map((item) => (
+                                    <div className="cart-item" key={item._id || item.id}>
+                                        <img
+                                            src={getItemImageSrc(item)}
+                                            alt={item.name}
+                                            className="cart-item-image"
+                                            onError={(event) => {
+                                                event.currentTarget.onerror = null;
+                                                event.currentTarget.src = fallbackImage;
+                                            }}
+                                        />
+
+                                        <div className="cart-item-details">
+                                            <h4>{item.name}</h4>
+                                            <p className="cart-item-price">Rs. {item.price}</p>
+                                            <p className="cart-item-subtotal">
+                                                Subtotal: Rs. {(Number(item.price) || 0) * item.quantity}
+                                            </p>
+                                        </div>
+
+                                        <div className="cart-item-controls">
+                                            <button className="cart-control-btn" onClick={() => removeFromCart(item)}>-</button>
+                                            <span className="cart-qty">{item.quantity}</span>
+                                            <button className="cart-control-btn" onClick={() => addToCart(item)}>+</button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
+                        </section>
 
-                    <div className="cart-summary">
-                        <p>Items: {totalItems}</p>
-                        <p>Total: Rs. {getCartTotal()}</p>
-                    </div>
-                    <div >
-                        
-                        <button onClick={() => navigate('/checkout')}>Proceed to Checkout</button>
+                        <aside className="cart-right-panel">
+                            <div className="cart-summary-card">
+                                <h3>Price Summary</h3>
+
+                                <div className="cart-summary-row">
+                                    <span>Price ({totalItems} item{totalItems > 1 ? 's' : ''})</span>
+                                    <span>Rs. {getCartTotal()}</span>
+                                </div>
+
+                                <div className="cart-summary-row">
+                                    <span>Delivery Charges</span>
+                                    <span className="cart-free">Free</span>
+                                </div>
+
+                                <div className="cart-summary-total">
+                                    <span>Total Amount</span>
+                                    <span>Rs. {getCartTotal()}</span>
+                                </div>
+
+                                <button className="cart-checkout-btn" onClick={() => navigate('/checkout')}>
+                                    Proceed to Checkout
+                                </button>
+                            </div>
+                        </aside>
                     </div>
                 </>
             )}

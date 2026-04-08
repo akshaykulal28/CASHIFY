@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
+import '../CSS/PaymentSuccess.css';
 
 
 
@@ -13,6 +14,7 @@ function PaymentSuccess() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('Verifying payment...');
+  const [paymentMeta, setPaymentMeta] = useState(null);
 
   
 
@@ -29,6 +31,7 @@ function PaymentSuccess() {
         const processedKey = `processedStripeSession:${sessionId}`;
         if (sessionStorage.getItem(processedKey)) {
           setMessage('Payment already processed.');
+          setPaymentMeta({ sessionId });
           clearCart();
           sessionStorage.removeItem('pendingCheckoutItems');
           setLoading(false);
@@ -55,6 +58,10 @@ function PaymentSuccess() {
 
         if (!itemsToOrder.length) {
           setMessage('Payment successful. No pending cart items were found to convert into orders.');
+          setPaymentMeta({
+            sessionId: verifyData.sessionId,
+            customerEmail: verifyData.customerEmail,
+          });
           sessionStorage.setItem(processedKey, '1');
           sessionStorage.removeItem('pendingCheckoutItems');
           clearCart();
@@ -104,6 +111,10 @@ function PaymentSuccess() {
         sessionStorage.setItem(processedKey, '1');
         sessionStorage.removeItem('pendingCheckoutItems');
         clearCart();
+        setPaymentMeta({
+          sessionId: verifyData.sessionId,
+          customerEmail: verifyData.customerEmail,
+        });
         setMessage('Payment successful, your order has been placed, and a confirmation email was sent.');
 
       } catch (err) {
@@ -123,19 +134,51 @@ function PaymentSuccess() {
     
 
   return (
-    <div style={{ maxWidth: '640px', margin: '24px auto', padding: '24px' }}>
-      <h2>Payment Success</h2>
-      {loading && <p>{message}</p>}
-      {!loading && !error && <p>{message}</p>}
-      {!loading && error && <p style={{ color: 'red' }}>{error}</p>}
+    <main className="payment-success-page">
+      <section className="payment-success-card" aria-live="polite">
+        <div className="payment-success-icon" aria-hidden="true">
+          ✓
+        </div>
+        <h1 className="payment-success-title">Payment Successful</h1>
+        <p className="payment-success-subtitle">
+          Your payment has been received. We are now preparing your order details.
+        </p>
 
-      <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+        <p
+          className={`payment-success-status ${
+            loading ? 'is-loading' : error ? 'is-error' : 'is-success'
+          }`}
+        >
+          {message}
+        </p>
 
-        <Link to="/">Go to Home</Link>
+        {!loading && !error && paymentMeta?.sessionId && (
+          <div className="payment-success-meta">
+            <span className="meta-label">Reference</span>
+            <span className="meta-value">{paymentMeta.sessionId}</span>
+            {paymentMeta.customerEmail && (
+              <>
+                <span className="meta-label">Receipt Sent To</span>
+                <span className="meta-value">{paymentMeta.customerEmail}</span>
+              </>
+            )}
+          </div>
+        )}
 
-        <button type="button" onClick={() => navigate('/ManageOrder')}>View Orders</button>
-      </div>
-    </div>
+        <div className="payment-success-actions">
+          <Link to="/" className="btn btn-primary">
+            Go to Home
+          </Link>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => navigate('/ManageOrder')}
+          >
+            View Orders
+          </button>
+        </div>
+      </section>
+    </main>
   );
 }
 

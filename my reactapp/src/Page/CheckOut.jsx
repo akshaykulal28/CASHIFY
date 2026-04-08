@@ -1,8 +1,7 @@
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
-
-
+import '../CSS/CheckOut.css';
 
 function CheckOut() {
     const navigate = useNavigate();
@@ -11,7 +10,6 @@ function CheckOut() {
     const [error, setError] = useState('');
     const API = import.meta.env.VITE_API;
 
-    
     const handleHostedCheckout = async () => {
         setError('');
 
@@ -54,17 +52,26 @@ function CheckOut() {
     };
 
     return (
-        <div style={{ maxWidth: '600px', margin: '24px auto', padding: '24px' }}>
+        <div className="checkout-container">
             <h2>Checkout</h2>
-            <p>Total Items: {cartItems.reduce((count, item) => count + item.quantity, 0)}</p>
-            <p>Total Amount: Rs. {getCartTotal()}</p>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                <button type="button" onClick={() => navigate('/addtocart')} disabled={loading}>
+            <p>
+                Total Items: {cartItems.reduce((count, item) => count + item.quantity, 0)}
+            </p>
+
+            <p>Total Amount: Rs. {getCartTotal()}</p>
+
+            {error && <p className="checkout-error">{error}</p>}
+
+            <div className="checkout-actions">
+                <button onClick={() => navigate('/addtocart')} disabled={loading}>
                     Back to Cart
                 </button>
-                <button type="button" onClick={handleHostedCheckout} disabled={loading || !cartItems.length}>
+
+                <button
+                    onClick={handleHostedCheckout}
+                    disabled={loading || !cartItems.length}
+                >
                     {loading ? 'Redirecting...' : 'Pay with Stripe'}
                 </button>
             </div>

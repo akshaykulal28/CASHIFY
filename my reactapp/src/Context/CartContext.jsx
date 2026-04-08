@@ -3,12 +3,42 @@ import { createContext, useState, useEffect } from 'react'
 export const CartContext = createContext()
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState(localStorage.getItem('cartItems') ? JSON.parse(localStorage.getItem('cartItems')) : [])
+  const normalizeCartItem = (item) => {
+    if (!item || typeof item !== 'object') return null;
+
+    const imageUrl = item.imageUrl || item.ImageUrl || item.ImageURL || '';
+    const quantity = Number(item.quantity) > 0 ? Number(item.quantity) : 1;
+
+    return {
+      ...item,
+      imageUrl,
+      quantity,
+    };
+  };
+
+  const readStoredCartItems = () => {
+    try {
+      const storedItems = localStorage.getItem('cartItems');
+      if (!storedItems) return [];
+
+      const parsed = JSON.parse(storedItems);
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed
+        .map(normalizeCartItem)
+        .filter((item) => item && (item._id || item.id));
+    } catch {
+      return [];
+    }
+  };
+
+  const [cartItems, setCartItems] = useState(readStoredCartItems)
 
   const getItemKey = (item) => item?._id || item?.id;
 
   const addToCart = (item) => {
-    const itemKey = getItemKey(item);
+    const normalizedItem = normalizeCartItem(item);
+    const itemKey = getItemKey(normalizedItem);
     if (!itemKey) return;
 
     const isItemInCart = cartItems.find((cartItem) => getItemKey(cartItem) === itemKey);
@@ -22,7 +52,7 @@ export const CartProvider = ({ children }) => {
         )
       );
     } else {
-      setCartItems([...cartItems, { ...item, quantity: 1 }]);
+      setCartItems([...cartItems, normalizedItem]);
     }
   };
 
@@ -59,10 +89,7 @@ export const CartProvider = ({ children }) => {
   }, [cartItems]);
 
   useEffect(() => {
-    const cartItems = localStorage.getItem("cartItems");
-    if (cartItems) {
-      setCartItems(JSON.parse(cartItems));
-    }
+    setCartItems(readStoredCartItems());
   }, []);
 
   return (
