@@ -95,7 +95,7 @@ function EditProduct() {
             payload.append('category', category);
             payload.append('brand', brand);
 
-            const res = await fetch(`${API}/${id}`, {
+            const res = await fetch(`${API}/api/products/${id}`, {
                 method: 'PUT',
                 body: payload
             });
