@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
-import '../CSS/CheckOut.css';
+import '../CSS/Checkout.css';
 
 function CheckOut() {
     const navigate = useNavigate();
