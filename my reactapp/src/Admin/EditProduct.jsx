@@ -14,7 +14,7 @@ function EditProduct() {
     const [imagePreview, setImagePreview] = useState('');
     const [name, setName] = useState('');
     const [type, setType] = useState('');
-    const [varity ,Setvarity] =useState('');
+    const [varity, setVarity] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
     const [originalPrice, setOriginalPrice] = useState('');
