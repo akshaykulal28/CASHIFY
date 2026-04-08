@@ -37,8 +37,8 @@ function EditProduct() {
 
         try {
             const [productRes, servicesRes] = await Promise.all([
-                fetch(`${PRODUCT_API}/api/products/${id}`),
-                fetch(`${SERVICE_API}/api/services/all`)
+                fetch(`${API}/api/products/${id}`),
+                fetch(`${API}/api/services/all`)
             ]);
 
             const productData = await productRes.json();
