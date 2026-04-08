@@ -128,27 +128,3 @@
 .btn-secondary:hover {
   background: #f9fafb;
 }
-
-@media (max-width: 640px) {
-  .payment-success-card {
-    padding: 20px;
-  }
-
-  .payment-success-title {
-    font-size: 24px;
-  }
-
-  .payment-success-meta {
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
-
-  .payment-success-actions {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-    text-align: center;
-  }
-}
