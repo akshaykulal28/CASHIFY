@@ -13,7 +13,7 @@ function BuyRefurbishedProducts() {
             setLoading(true);
             setError('');
             try {
-                const res = await fetch(`${API}/api/products/phone`);
+                const res = await fetch(`${API}/api/products/all`);
                 const data = await res.json();
                 if (res.ok) setProducts(data);
                 else setError(data.message || 'Failed to fetch products');  
