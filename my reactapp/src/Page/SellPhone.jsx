@@ -33,6 +33,7 @@ const SellPhone = () => {
   const durationOptions = ['Less than 3 months', '3-6 months', '6-12 months', '1-2 years', 'More than 2 years'];
   const damageOptions = ['No Damage', 'Screen', 'Body', 'Camera', 'Button', 'Water Damage', 'Multiple'];
 
+  const API = import.meta.env.VITE_API;
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -60,7 +61,7 @@ const SellPhone = () => {
         payload.append('images', image);
       });
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/phone-submission/add`, {
+      const response = await fetch(`${API}/api/phone-submission/add`, {
         method: 'POST',
         body: payload,
       });
