@@ -6,6 +6,7 @@ require('dotenv').config();
 const ServiceRouter = require('./routes/ServiceRouter');
 const productRoutes = require('./routes/productRoutes');
 const OrderRouter = require('./routes/OrderRouter');
+const PhoneSubmissionRouter = require('./routes/PhoneSubmissionRouter');
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || process.env.STIPE_SECRET_KEY;
 const stripe = require('stripe')(stripeSecretKey);
 
@@ -120,6 +121,7 @@ app.use("/uploads",express.static("uploads"));
 app.use('/api/products', productRoutes);
 app.use('/api/services', ServiceRouter);
 app.use('/api/order', OrderRouter);
+app.use('/api/phone-submission', PhoneSubmissionRouter);
 
 
 

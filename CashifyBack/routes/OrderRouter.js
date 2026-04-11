@@ -30,6 +30,16 @@ router.post('/add', async (req, res) => {
         if (missingAddressField) {
             return res.status(400).json({ message: 'shippingAddress is required.' });
         }
+
+        if (stripeSessionId) {
+            const existingOrder = await Order.findOne({ stripeSessionId, productId });
+            if (existingOrder) {
+                return res.status(200).json({
+                    message: 'Order already exists for this payment session.',
+                    order: existingOrder,
+                });
+            }
+        }
         
         const newOrder = new Order({
             quantity,
@@ -39,6 +49,7 @@ router.post('/add', async (req, res) => {
             totalAmount,
             stripeSessionId,
             paymentStatus,
+            deliveryStatus: 'pending',
             customerEmail,
             shippingAddress: normalizedAddress,
         });
@@ -130,7 +141,7 @@ router.patch('/update-delivery-status/:orderId', async (req, res) => {
         const order = await Order.findByIdAndUpdate(
             orderId,
             { deliveryStatus },
-            { new: true }
+            { new: true, runValidators: true }
         );
 
         if (!order) {

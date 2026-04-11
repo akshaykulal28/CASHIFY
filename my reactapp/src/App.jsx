@@ -16,6 +16,7 @@ import EditProduct from './Admin/EditProduct';
 import CheckOut from './Page/CheckOut';
 import PaymentSuccess from './Page/PaymentSuccess';
 import PaymentCancel from './Page/PaymentCancel';
+import SellPhone from './Page/SellPhone';
 
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-cancel" element={<PaymentCancel />} />
         <Route path="/ManageOrder" element={<ManageOrder />} />
+        <Route path="/sellphone" element={<SellPhone />} />
       </Routes>
     </Router>
   )

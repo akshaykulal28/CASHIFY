@@ -64,6 +64,11 @@ const orderSchema = new mongoose.Schema({
         type: String,
         default: 'paid',
     },
+    deliveryStatus: {
+        type: String,
+        enum: ['pending', 'shipped', 'delivered'],
+        default: 'pending',
+    },
     confirmationEmailSent: {
         type: Boolean,
         default: false,
@@ -74,5 +79,7 @@ const orderSchema = new mongoose.Schema({
         default: Date.now,
     },
 });
+
+orderSchema.index({ stripeSessionId: 1, productId: 1 });
 
 module.exports = mongoose.model('Order', orderSchema);
