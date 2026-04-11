@@ -4,6 +4,7 @@ import Footer from './Footer';
 import OurServices from './OurService';
 import Carasel from './Carosel';
 import BuyRefurbishedProducts from './BuyRefurbishedProducts';
+import BuyRefurbishedLaptop from './BuyRefurbishedLaptop';
 
 
 function Home(){
@@ -23,6 +24,7 @@ function Home(){
             <OurServices />
             <SellOld />
             <BuyRefurbishedProducts /> 
+            <BuyRefurbishedLaptop />
             <Footer />
             
 

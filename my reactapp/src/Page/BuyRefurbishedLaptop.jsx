@@ -1,33 +1,37 @@
-import { useState , useEffect } from "react";
-import '../CSS/BuyRefurbishedProduct.css';
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-function BuyRefurbishedProducts() {
+import '../CSS/BuyRefurbishedProduct.css';
+
+function BuyRefurbishedLaptop() {
     
         const API = import.meta.env.VITE_API;
         const [products, setProducts] = useState([]);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState('');
-        useEffect(() => {fetchProducts();},[]);
+
         const navigate = useNavigate();
+
+        useEffect(() => {fetchProducts();},[]);
+
         const fetchProducts = async () => {
             setLoading(true);
             setError('');
             try {
-                const res = await fetch(`${API}/api/products/phone`);
+                const res = await fetch(`${API}/api/products/laptop`);
                 const data = await res.json();
                 if (res.ok) setProducts(data);
-                else setError(data.message || 'Failed to fetch products');  
+                else setError(data.message || 'Failed to fetch products');
             } catch {
                 setError('Server error. Make sure backend is running.');
-
             } finally {
                 setLoading(false);
             }
         };
+
     return (
         <div className="BRP-container">
             <div className="BRP-header">
-                <h2>Buy Refurbished Phone</h2>
+                <h2>Buy Refurbished Laptop</h2>
                 <span className="viewall">View All</span>
             </div>
 
@@ -45,7 +49,6 @@ function BuyRefurbishedProducts() {
                             <span className="tag">{product.tag}</span>
                             {product.rating}
                         </div>
-
                         <div>
                             <span className="discount">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</span>
                             <span className="price">{product.price}</span>
@@ -54,10 +57,8 @@ function BuyRefurbishedProducts() {
                     </div>
                 ))}
             </div>
-
         </div>
-        
     );
 }
 
-export default BuyRefurbishedProducts;
+export default BuyRefurbishedLaptop;

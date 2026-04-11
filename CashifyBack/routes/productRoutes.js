@@ -159,4 +159,25 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+//refurbishhed product
+
+router.get('/phone', async (req, res) => {
+    try {
+        const products = await Product.find({ type: "Phone" }).sort({ createdAt: -1 });
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error5', error: error.message });
+    }
+});
+
+
+router.get('/laptop', async (req, res) => {
+    try {
+        const products = await Product.find({ type : "Laptop" }).sort({ createdAt: -1 });
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error6', error: error.message });
+    }
+});
+
 module.exports = router;
