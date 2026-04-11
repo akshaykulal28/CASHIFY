@@ -14,6 +14,7 @@ function ManageOrder (){
     const [error, setError] = useState('');
     const [updatingOrderId, setUpdatingOrderId] = useState(null);
     const [updateError, setUpdateError] = useState('');
+    const [deletingId, setDeletingId] = useState(null);
     const API = import.meta.env.VITE_API;
 
     useEffect( () => { fetchOrders (); }, []);
@@ -46,7 +47,7 @@ function ManageOrder (){
 
             const data = await res.json();
             if (res.ok) {
-                // Update local state
+                
                 setOrders(orders.map(order => 
                     order._id === orderId ? { ...order, deliveryStatus: newStatus } : order
                 ));
@@ -62,6 +63,28 @@ function ManageOrder (){
             setUpdatingOrderId(null);
         }
     };
+
+    const handeldelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this order?')) return;
+        setDeletingId(id);
+        try {
+            const res = await fetch(`${API}/api/order/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok) {
+                setOrders(orders.filter(o => o._id !== id));
+            } else {
+                alert(data.message || 'Failed to delete order');
+            }
+        } catch {
+            alert('Server error. Make sure backend is running.');
+        } finally {
+            setDeletingId(null);
+
+        }
+    };
+
+
+
 
     
     
@@ -94,6 +117,7 @@ function ManageOrder (){
                                 <th>Total Amount</th>
                                 <th> Payment Status</th>
                                 <th>Delevery Status</th>
+                                <th>Action</th>
                             </tr>
                         
                             {orders.map((user, index) => (
@@ -115,6 +139,10 @@ function ManageOrder (){
                                             <option value="shipped">Shipped</option>
                                             <option value="delivered">Delivered</option>
                                         </select>
+                                    </td>
+                                    <td>
+                                        <button 
+                                            className="mo-action-btn" onClick={() => handeldelete(user._id)} disabled={deletingId === user._id}>Delete</button>
                                     </td>
 
                                 </tr>
