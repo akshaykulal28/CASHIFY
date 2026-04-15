@@ -19,7 +19,12 @@ function BuyRefurbishedLaptop() {
             try {
                 const res = await fetch(`${API}/api/products/laptop`);
                 const data = await res.json();
-                if (res.ok) setProducts(data);
+                if (res.ok) {
+                    const laptopProducts = Array.isArray(data)
+                        ? data.filter((product) => product?.type === 'Laptop')
+                        : [];
+                    setProducts(laptopProducts);
+                }
                 else setError(data.message || 'Failed to fetch products');
             } catch {
                 setError('Server error. Make sure backend is running.');
