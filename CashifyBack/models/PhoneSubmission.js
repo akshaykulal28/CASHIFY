@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const phoneSubmissionSchema = new mongoose.Schema({
+  DeviceType: {
+    type: String,
+    enum: ['Phone', 'Laptop', 'Tablet', 'Other'],
+    required: true,
+  },
   brand: {
     type: String,
     required: true,

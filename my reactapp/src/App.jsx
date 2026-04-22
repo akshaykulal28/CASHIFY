@@ -17,6 +17,8 @@ import CheckOut from './Page/CheckOut';
 import PaymentSuccess from './Page/PaymentSuccess';
 import PaymentCancel from './Page/PaymentCancel';
 import SellPhone from './Page/SellPhone';
+import SellLaptop from './Page/SellLaptop';
+import ManageRequest from './Admin/ManageRequest';
 
 
 function App() {
@@ -40,6 +42,9 @@ function App() {
         <Route path="/payment-cancel" element={<PaymentCancel />} />
         <Route path="/ManageOrder" element={<ManageOrder />} />
         <Route path="/sellphone" element={<SellPhone />} />
+        <Route path="/selllaptop" element={<SellLaptop />} />
+        <Route path="/Managerequest" element={<ManageRequest />} />
+
       </Routes>
     </Router>
   )

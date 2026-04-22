@@ -100,7 +100,6 @@ router.post('/send-confirmation', async (req, res) => {
             sessionId: stripeSessionId,
             currency,
             totalAmount: computedTotal,
-            shippingAddress,
         });
 
         await Order.updateMany(
@@ -148,7 +147,7 @@ router.patch('/update-delivery-status/:orderId', async (req, res) => {
             return res.status(404).json({ message: 'Order not found.' });
         }
 
-        // Send email notification to customer
+        // Send email  customer
         if (order.customerEmail) {
             try {
                 await sendDeliveryStatusEmail({
@@ -158,7 +157,7 @@ router.patch('/update-delivery-status/:orderId', async (req, res) => {
                 });
             } catch (emailErr) {
                 console.error('Failed to send delivery status email:', emailErr);
-                // Don't fail the order update if email fails
+                
             }
         }
 

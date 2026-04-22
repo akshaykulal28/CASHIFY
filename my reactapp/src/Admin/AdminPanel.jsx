@@ -14,6 +14,7 @@ function AdminPanel() {
                 <button onClick={() => navigate('/AddService')}>AddService</button>
                 <button onClick={() => navigate('/ViewService')}>View Service</button>
                 <button onClick={() => navigate('/ManageOrder')}>ManageOrder</button>
+                <button onClick={() => navigate('/Managerequest')}>Manage Request</button>
 
             </div>
         </div>

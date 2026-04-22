@@ -7,6 +7,12 @@ const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
 const mailFrom = process.env.MAIL_FROM || smtpUser;
 
+const DELIVERY_STATUS_MESSAGES = {
+  delivered: 'Your order has been delivered! Thank you for shopping with us.',
+  shipped: 'Your order is on the way! You can expect it soon.',
+  pending: 'Your order is being prepared for shipment.',
+};
+
 function createTransporter() {
   if (!smtpHost || !smtpUser || !smtpPass) {
     return null;
@@ -24,6 +30,20 @@ function createTransporter() {
 }
 
 const transporter = createTransporter();
+
+function ensureEmailConfig() {
+  if (!transporter) {
+    throw new Error('Email service is not configured. Please set SMTP_HOST, SMTP_USER and SMTP_PASS.');
+  }
+
+  if (!mailFrom) {
+    throw new Error('MAIL_FROM is missing.');
+  }
+}
+
+function capitalize(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 function formatCurrency(value) {
   const amount = Number(value || 0);
@@ -82,13 +102,7 @@ function buildEmailHtml(orders, sessionId, currency, total) {
 }
 
 async function sendOrderConfirmationEmail({ to, orders, sessionId, currency = 'INR', totalAmount = 0 }) {
-  if (!transporter) {
-    throw new Error('Email service is not configured. Please set SMTP_HOST, SMTP_USER and SMTP_PASS.');
-  }
-
-  if (!mailFrom) {
-    throw new Error('MAIL_FROM is missing.');
-  }
+  ensureEmailConfig();
 
   const html = buildEmailHtml(orders, sessionId, currency, totalAmount);
 
@@ -101,27 +115,17 @@ async function sendOrderConfirmationEmail({ to, orders, sessionId, currency = 'I
 }
 
 async function sendDeliveryStatusEmail({ to, orderName, deliveryStatus }) {
-  if (!transporter) {
-    throw new Error('Email service is not configured. Please set SMTP_HOST, SMTP_USER and SMTP_PASS.');
-  }
+  ensureEmailConfig();
 
-  if (!mailFrom) {
-    throw new Error('MAIL_FROM is missing.');
-  }
-
-  const statusMessage = {
-    delivered: 'Your order has been delivered! Thank you for shopping with us.',
-    shipped: 'Your order is on the way! You can expect it soon.',
-    pending: 'Your order is being prepared for shipment.',
-  };
+  const formattedStatus = capitalize(deliveryStatus);
 
   const html = `
     <div style="font-family:Arial,sans-serif;line-height:1.5;">
       <h2>Order Status Update</h2>
       <p>Dear Customer,</p>
       <p><strong>Item:</strong> ${orderName}</p>
-      <p><strong>Status:</strong> <span style="color:#28a745;font-weight:bold;">${deliveryStatus.charAt(0).toUpperCase() + deliveryStatus.slice(1)}</span></p>
-      <p>${statusMessage[deliveryStatus] || 'Your order status has been updated.'}</p>
+      <p><strong>Status:</strong> <span style="color:#28a745;font-weight:bold;">${formattedStatus}</span></p>
+      <p>${DELIVERY_STATUS_MESSAGES[deliveryStatus] || 'Your order status has been updated.'}</p>
       <p>Thank you for your patience!</p>
     </div>
   `;
@@ -129,7 +133,7 @@ async function sendDeliveryStatusEmail({ to, orderName, deliveryStatus }) {
   await transporter.sendMail({
     from: mailFrom,
     to,
-    subject: `Order Status Update - ${deliveryStatus.charAt(0).toUpperCase() + deliveryStatus.slice(1)}`,
+    subject: `Order Status Update - ${formattedStatus}`,
     html,
   });
 }
