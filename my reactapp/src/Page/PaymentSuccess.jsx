@@ -15,10 +15,16 @@ function PaymentSuccess() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('Verifying payment...');
   const [paymentMeta, setPaymentMeta] = useState(null);
+  const [emailWarning, setEmailWarning] = useState('');
 
   
 
     const createOrdersAfterVerification = async () => {
+      if (!API) {
+        setError('Frontend API URL is missing. Set VITE_API in frontend environment settings.');
+        setLoading(false);
+        return;
+      }
 
       const sessionId = searchParams.get('session_id');
       if (!sessionId) {
@@ -39,6 +45,7 @@ function PaymentSuccess() {
           return;
         }
 
+        setMessage('Verifying payment...');
         const verifyRes = await fetch(`${API}/api/payment/verify-session?session_id=${encodeURIComponent(sessionId)}`);
         const verifyData = await verifyRes.json();
 
@@ -77,6 +84,7 @@ function PaymentSuccess() {
           return;
         }
 
+        setMessage('Payment verified. Creating your order...');
         for (const item of itemsToOrder) {
           const orderPayload = {
             quantity: item.quantity,
@@ -102,19 +110,24 @@ function PaymentSuccess() {
           }
         }
 
-        const emailRes = await fetch(`${API}/api/order/send-confirmation`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            stripeSessionId: verifyData.sessionId,
-            customerEmail: verifyData.customerEmail,
-            currency: verifyData.currency || 'INR',
-          }),
-        });
+        setMessage('Order placed. Sending confirmation email...');
+        try {
+          const emailRes = await fetch(`${API}/api/order/send-confirmation`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              stripeSessionId: verifyData.sessionId,
+              customerEmail: verifyData.customerEmail,
+              currency: verifyData.currency || 'INR',
+            }),
+          });
 
-        const emailData = await emailRes.json();
-        if (!emailRes.ok) {
-          throw new Error(emailData.message || 'Order placed but failed to send confirmation email.');
+          const emailData = await emailRes.json();
+          if (!emailRes.ok) {
+            setEmailWarning(emailData.message || 'Order placed, but confirmation email is delayed. Please check your inbox shortly.');
+          }
+        } catch (emailErr) {
+          setEmailWarning(emailErr.message || 'Order placed, but confirmation email is delayed. Please check your inbox shortly.');
         }
 
         sessionStorage.setItem(processedKey, '1');
@@ -126,7 +139,7 @@ function PaymentSuccess() {
           customerEmail: verifyData.customerEmail,
           shippingAddress,
         });
-        setMessage('Payment successful, your order has been placed, and a confirmation email was sent.');
+        setMessage('Payment successful and your order has been placed.');
 
       } catch (err) {
         setError(err.message || 'Unable to complete order placement.');
@@ -162,6 +175,10 @@ function PaymentSuccess() {
         >
           {message}
         </p>
+
+        {!loading && !error && emailWarning && (
+          <p className="payment-success-status is-error">{emailWarning}</p>
+        )}
 
         {!loading && !error && paymentMeta?.sessionId && (
           <div className="payment-success-meta">

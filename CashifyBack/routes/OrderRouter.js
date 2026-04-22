@@ -57,6 +57,7 @@ router.post('/add', async (req, res) => {
         res.status(201).json({ message: 'Order created successfully.', order: newOrder });
     }
     catch (err) {
+        console.error('Create order error:', err);
         res.status(500).json({ message: 'Server error. Please try again.' });
     }
 });
@@ -64,6 +65,7 @@ router.post('/add', async (req, res) => {
 router.post('/send-confirmation', async (req, res) => {
     try {
         const { stripeSessionId, customerEmail, currency = 'INR' } = req.body;
+        console.info(`[order] send-confirmation requested. sessionId=${stripeSessionId || 'missing'}`);
 
         if (!stripeSessionId) {
             return res.status(400).json({ message: 'stripeSessionId is required.' });
@@ -75,16 +77,19 @@ router.post('/send-confirmation', async (req, res) => {
         });
 
         if (alreadySent) {
+            console.info(`[order] send-confirmation skipped. reason=already-sent sessionId=${stripeSessionId}`);
             return res.status(200).json({ message: 'Confirmation email already sent for this payment session.' });
         }
 
         const sessionOrders = await Order.find({ stripeSessionId }).sort({ createdAt: 1 });
         if (!sessionOrders.length) {
+            console.warn(`[order] send-confirmation failed. reason=no-orders sessionId=${stripeSessionId}`);
             return res.status(404).json({ message: 'No orders found for this payment session.' });
         }
 
         const to = customerEmail || sessionOrders.find((order) => order.customerEmail)?.customerEmail;
         if (!to) {
+            console.warn(`[order] send-confirmation failed. reason=missing-recipient sessionId=${stripeSessionId}`);
             return res.status(400).json({ message: 'Customer email is required to send confirmation.' });
         }
 
@@ -101,6 +106,7 @@ router.post('/send-confirmation', async (req, res) => {
             currency,
             totalAmount: computedTotal,
         });
+        console.info(`[order] send-confirmation success. sessionId=${stripeSessionId} recipient=${to}`);
 
         await Order.updateMany(
             { stripeSessionId },
@@ -111,6 +117,31 @@ router.post('/send-confirmation', async (req, res) => {
     } catch (err) {
         console.error('Send confirmation email error:', err);
         return res.status(500).json({ message: err.message || 'Failed to send confirmation email.' });
+    }
+});
+
+router.get('/session-status/:stripeSessionId', async (req, res) => {
+    try {
+        const { stripeSessionId } = req.params;
+        if (!stripeSessionId) {
+            return res.status(400).json({ message: 'stripeSessionId is required.' });
+        }
+
+        const sessionOrders = await Order.find({ stripeSessionId }).sort({ createdAt: 1 });
+        const confirmationEmailSent = sessionOrders.some((order) => order.confirmationEmailSent);
+        const paymentStatus = sessionOrders.find((order) => order.paymentStatus)?.paymentStatus || null;
+        const customerEmail = sessionOrders.find((order) => order.customerEmail)?.customerEmail || null;
+
+        return res.status(200).json({
+            stripeSessionId,
+            orderCount: sessionOrders.length,
+            confirmationEmailSent,
+            paymentStatus,
+            customerEmail,
+        });
+    } catch (err) {
+        console.error('Session status lookup error:', err);
+        return res.status(500).json({ message: 'Unable to fetch session status.' });
     }
 });
 

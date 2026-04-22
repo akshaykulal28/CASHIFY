@@ -7,14 +7,178 @@ const ServiceRouter = require('./routes/ServiceRouter');
 const productRoutes = require('./routes/productRoutes');
 const OrderRouter = require('./routes/OrderRouter');
 const PhoneSubmissionRouter = require('./routes/PhoneSubmissionRouter');
+const Order = require('./models/Order');
+const { sendOrderConfirmationEmail } = require('./utils/mailService');
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || process.env.STIPE_SECRET_KEY;
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const stripe = require('stripe')(stripeSecretKey);
 
 //app.use(cors({ origin: "https://cashify-gamma.vercel.app" }));
 
 const app = express();
 const port = process.env.PORT || 3000;  
+
+function logStartupEnvDiagnostics() {
+  const requiredVars = ['MONGO_URI', 'STRIPE_SECRET_KEY', 'SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'];
+  const optionalButRecommended = ['CLIENT_URL', 'SERVER_URL', 'MAIL_FROM', 'STRIPE_WEBHOOK_SECRET'];
+
+  const missingRequired = requiredVars.filter((name) => !process.env[name] && !(name === 'STRIPE_SECRET_KEY' && process.env.STIPE_SECRET_KEY));
+  const missingOptional = optionalButRecommended.filter((name) => !process.env[name]);
+
+  if (missingRequired.length) {
+    console.error(`[startup] Missing required env vars: ${missingRequired.join(', ')}`);
+  } else {
+    console.info('[startup] Required env vars are present.');
+  }
+
+  if (missingOptional.length) {
+    console.warn(`[startup] Optional env vars not set: ${missingOptional.join(', ')}`);
+  }
+}
+
+function getShippingAddressFromSession(session) {
+  const metadata = session.metadata || {};
+  const shippingAddress = {
+    fullName: metadata.shippingFullName || '',
+    street: metadata.shippingStreet || '',
+    city: metadata.shippingCity || '',
+    state: metadata.shippingState || '',
+    postalCode: metadata.shippingPostalCode || '',
+    country: metadata.shippingCountry || '',
+  };
+
+  const requiredAddressFields = ['fullName', 'street', 'city', 'state', 'postalCode', 'country'];
+  const isValid = requiredAddressFields.every((field) => Boolean(String(shippingAddress[field] || '').trim()));
+  return isValid ? shippingAddress : null;
+}
+
+logStartupEnvDiagnostics();
+
 app.use(cors());
+
+app.post('/api/payment/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  try {
+    if (!stripeSecretKey) {
+      return res.status(500).send('Stripe is not configured on server.');
+    }
+
+    if (!stripeWebhookSecret) {
+      console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET is missing.');
+      return res.status(500).send('Stripe webhook secret is not configured.');
+    }
+
+    const signature = req.headers['stripe-signature'];
+    if (!signature) {
+      return res.status(400).send('Missing Stripe signature.');
+    }
+
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(req.body, signature, stripeWebhookSecret);
+    } catch (err) {
+      console.error('[stripe-webhook] Signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type !== 'checkout.session.completed') {
+      return res.status(200).json({ received: true, ignored: event.type });
+    }
+
+    const checkoutSession = event.data.object;
+    const sessionId = checkoutSession.id;
+    const enrichedSession = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['line_items.data.price.product'],
+    });
+
+    if (enrichedSession.payment_status !== 'paid') {
+      console.warn(`[stripe-webhook] Received non-paid checkout completion. sessionId=${sessionId} status=${enrichedSession.payment_status}`);
+      return res.status(200).json({ received: true, ignored: 'payment-not-paid' });
+    }
+
+    const customerEmail = enrichedSession.customer_details?.email || enrichedSession.customer_email || null;
+    const shippingAddress = getShippingAddressFromSession(enrichedSession);
+    const amountTotal = Number(enrichedSession.amount_total || 0) / 100;
+    const lineItems = enrichedSession.line_items?.data || [];
+
+    if (!lineItems.length) {
+      console.warn(`[stripe-webhook] No line items found. sessionId=${sessionId}`);
+      return res.status(200).json({ received: true, ignored: 'no-line-items' });
+    }
+
+    for (const lineItem of lineItems) {
+      const productMetadata = lineItem.price?.product?.metadata || {};
+      const productIdFromStripe = productMetadata.productId;
+      const hasValidObjectId = mongoose.isValidObjectId(productIdFromStripe);
+      const quantity = Number(lineItem.quantity || 1);
+      const amountSubtotal = Number(lineItem.amount_subtotal || lineItem.amount_total || 0) / 100;
+      const unitPrice = quantity > 0 ? amountSubtotal / quantity : 0;
+
+      const selector = hasValidObjectId
+        ? { stripeSessionId: sessionId, productId: productIdFromStripe }
+        : { stripeSessionId: sessionId, name: lineItem.description };
+
+      const orderPayload = {
+        quantity,
+        name: lineItem.description,
+        price: unitPrice,
+        totalAmount: amountTotal,
+        stripeSessionId: sessionId,
+        paymentStatus: enrichedSession.payment_status,
+        customerEmail,
+      };
+
+      if (hasValidObjectId) {
+        orderPayload.productId = productIdFromStripe;
+      }
+
+      if (shippingAddress) {
+        orderPayload.shippingAddress = shippingAddress;
+      }
+
+      await Order.findOneAndUpdate(
+        selector,
+        {
+          $setOnInsert: orderPayload,
+          $set: {
+            paymentStatus: enrichedSession.payment_status,
+            totalAmount: amountTotal,
+            customerEmail,
+            ...(shippingAddress ? { shippingAddress } : {}),
+          },
+        },
+        { upsert: true, new: true }
+      );
+    }
+
+    const sessionOrders = await Order.find({ stripeSessionId: sessionId }).sort({ createdAt: 1 });
+    const alreadySent = await Order.exists({ stripeSessionId: sessionId, confirmationEmailSent: true });
+
+    if (!alreadySent && customerEmail && sessionOrders.length) {
+      const computedTotal = sessionOrders.reduce((sum, order) => sum + (Number(order.price || 0) * Number(order.quantity || 0)), 0);
+      await sendOrderConfirmationEmail({
+        to: customerEmail,
+        orders: sessionOrders,
+        sessionId,
+        currency: (enrichedSession.currency || 'inr').toUpperCase(),
+        totalAmount: computedTotal,
+      });
+
+      await Order.updateMany(
+        { stripeSessionId: sessionId },
+        { $set: { confirmationEmailSent: true } }
+      );
+      console.info(`[stripe-webhook] Confirmation email sent. sessionId=${sessionId} recipient=${customerEmail}`);
+    } else {
+      console.info(`[stripe-webhook] Confirmation email skipped. sessionId=${sessionId} alreadySent=${Boolean(alreadySent)} hasCustomerEmail=${Boolean(customerEmail)} orderCount=${sessionOrders.length}`);
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('[stripe-webhook] Processing error:', err);
+    return res.status(500).send('Webhook processing failed.');
+  }
+});
+
 app.use(express.json());
 
 const MONGO_URI = process.env.MONGO_URI;
@@ -170,7 +334,12 @@ app.post('/api/payment/create-payment-intent', async (req, res) => {
       return {
         price_data: {
           currency: 'inr',
-          product_data: productData,
+          product_data: {
+            ...productData,
+            metadata: {
+              productId: String(item._id || item.id || ''),
+            },
+          },
           unit_amount: Math.round(price * 100),
         },
         quantity,

@@ -14,7 +14,13 @@ const DELIVERY_STATUS_MESSAGES = {
 };
 
 function createTransporter() {
-  if (!smtpHost || !smtpUser || !smtpPass) {
+  const missing = [];
+  if (!smtpHost) missing.push('SMTP_HOST');
+  if (!smtpUser) missing.push('SMTP_USER');
+  if (!smtpPass) missing.push('SMTP_PASS');
+
+  if (missing.length) {
+    console.warn(`[mail] SMTP transporter disabled. Missing env vars: ${missing.join(', ')}`);
     return null;
   }
 
@@ -39,6 +45,20 @@ function ensureEmailConfig() {
   if (!mailFrom) {
     throw new Error('MAIL_FROM is missing.');
   }
+}
+
+function normalizeSendMailError(err, contextLabel) {
+  const code = String(err?.code || '').toUpperCase();
+
+  if (code === 'EAUTH') {
+    return new Error(`${contextLabel}: SMTP authentication failed. Verify SMTP_USER and SMTP_PASS.`);
+  }
+
+  if (code === 'ETIMEDOUT' || code === 'ECONNECTION' || code === 'ESOCKET') {
+    return new Error(`${contextLabel}: SMTP connection failed. Verify SMTP_HOST, SMTP_PORT, SMTP_SECURE and provider network access.`);
+  }
+
+  return new Error(`${contextLabel}: ${err?.message || 'unknown email send error'}`);
 }
 
 function capitalize(value) {
@@ -106,12 +126,17 @@ async function sendOrderConfirmationEmail({ to, orders, sessionId, currency = 'I
 
   const html = buildEmailHtml(orders, sessionId, currency, totalAmount);
 
-  await transporter.sendMail({
-    from: mailFrom,
-    to,
-    subject: 'Payment Successful - Order Confirmation',
-    html,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: mailFrom,
+      to,
+      subject: 'Payment Successful - Order Confirmation',
+      html,
+    });
+    console.info(`[mail] Order confirmation sent. sessionId=${sessionId} to=${to} messageId=${info?.messageId || 'n/a'}`);
+  } catch (err) {
+    throw normalizeSendMailError(err, 'Unable to send order confirmation email');
+  }
 }
 
 async function sendDeliveryStatusEmail({ to, orderName, deliveryStatus }) {
@@ -130,12 +155,17 @@ async function sendDeliveryStatusEmail({ to, orderName, deliveryStatus }) {
     </div>
   `;
 
-  await transporter.sendMail({
-    from: mailFrom,
-    to,
-    subject: `Order Status Update - ${formattedStatus}`,
-    html,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: mailFrom,
+      to,
+      subject: `Order Status Update - ${formattedStatus}`,
+      html,
+    });
+    console.info(`[mail] Delivery status email sent. status=${formattedStatus} to=${to} messageId=${info?.messageId || 'n/a'}`);
+  } catch (err) {
+    throw normalizeSendMailError(err, 'Unable to send delivery status email');
+  }
 }
 
 module.exports = {
