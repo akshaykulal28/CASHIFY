@@ -58,7 +58,7 @@ function Login() {
       if (res.ok) {
         setSuccess('Login successful!');
         setUserProfile(data.user || { phone: phoneNumber, email: '' });
-        setTimeout(() => navigate('/'), 1000);
+        setTimeout(() => navigate('/home'), 1000);
       } else {
         setError(data.message || 'Login failed.');
       }

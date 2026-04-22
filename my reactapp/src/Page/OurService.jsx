@@ -27,7 +27,7 @@
 import '../CSS/OurService.css';
 import { useState } from 'react';
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 
 
@@ -65,7 +65,9 @@ function OurService() {
         {products.map((product) => (
           <div className="service-card">
             <div className="service-card-img">
-              <img src={`${API}/uploads/${product.ImageUrl}`} alt={product.Title} />
+              <Link to="/sellphone" >
+              <img src={`${API}/uploads/${product.ImageUrl}`} alt={product.Title}/>
+              </Link>
             </div>
             <span className="service-card-label">{product.Title}</span>
           </div>

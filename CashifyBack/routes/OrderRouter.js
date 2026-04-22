@@ -163,6 +163,94 @@ router.get('/all', async (req,res) => {
     }
 });
 
+router.get('/user/dashboard/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const customerEmail = String(req.query.email || '').trim().toLowerCase();
+
+        const filters = [];
+        if (userId) {
+            filters.push({ userId });
+        }
+        if (customerEmail) {
+            filters.push({ customerEmail });
+        }
+
+        const query = filters.length ? { $or: filters } : {};
+        const orders = await Order.find(query).sort({ createdAt: -1 });
+
+        const totalOrders = orders.length;
+
+        const totalSpent = orders.reduce((sum, order) => {
+            const amount = Number(order.totalAmount);
+            if (Number.isFinite(amount) && amount > 0) {
+                return sum + amount;
+            }
+            return sum + (Number(order.price || 0) * Number(order.quantity || 0));
+        }, 0);
+
+        let totalProducts = 0;
+        orders.forEach((order) => {
+            if (Array.isArray(order.items)) {
+                order.items.forEach((item) => {
+                    totalProducts += Number(item.quantity || 0);
+                });
+                return;
+            }
+            totalProducts += Number(order.quantity || 0);
+        });
+
+        const delivered = orders.filter((o) => o.status === 'Delivered' || o.deliveryStatus === 'delivered').length;
+
+        const cancelled = orders.filter((o) => o.status === 'Cancelled' || o.paymentStatus === 'cancelled').length;
+
+        const pending = orders.filter((o) => {
+            return (
+                o.status === 'Placed' ||
+                o.status === 'Preparing' ||
+                o.status === 'Out for Delivery' ||
+                o.deliveryStatus === 'pending' ||
+                o.deliveryStatus === 'shipped'
+            );
+        }).length;
+
+        const statusChart = [
+            { name: 'Delivered', value: delivered },
+            { name: 'Pending', value: pending },
+            { name: 'Cancelled', value: cancelled },
+        ];
+
+        const monthMap = {};
+        orders.forEach((order) => {
+            const month = new Date(order.createdAt).toLocaleString('default', { month: 'short' });
+            const amount = Number(order.totalAmount);
+            const safeAmount = Number.isFinite(amount) && amount > 0
+                ? amount
+                : (Number(order.price || 0) * Number(order.quantity || 0));
+            monthMap[month] = (monthMap[month] || 0) + safeAmount;
+        });
+
+        const monthChart = Object.keys(monthMap).map((month) => ({
+            month,
+            amount: monthMap[month],
+        }));
+
+        res.json({
+            totalOrders,
+            totalProducts,
+            totalSpent,
+            delivered,
+            pending,
+            cancelled,
+            statusChart,
+            monthChart,
+            recentOrders: orders.slice(0, 5),
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.patch('/update-delivery-status/:orderId', async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -219,6 +307,9 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ message: 'Server error. Please try again.' });
     }
 });
+
+
+
 
 
 

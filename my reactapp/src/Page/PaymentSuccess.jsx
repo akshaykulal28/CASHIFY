@@ -216,7 +216,7 @@ function PaymentSuccess() {
         )}
 
         <div className="payment-success-actions">
-          <Link to="/" className="btn btn-primary">
+          <Link to="/home" className="btn btn-primary">
             Go to Home
           </Link>
           <button

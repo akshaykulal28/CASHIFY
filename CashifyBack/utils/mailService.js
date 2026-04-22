@@ -1,4 +1,8 @@
 const nodemailer = require('nodemailer');
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
+
 
 const smtpHost = process.env.SMTP_HOST;
 const smtpPort = Number(process.env.SMTP_PORT || 587);
@@ -180,6 +184,7 @@ async function sendOrderConfirmationEmail({ to, orders, sessionId, currency = 'I
   ensureEmailConfig();
 
   const html = buildEmailHtml(orders, sessionId, currency, totalAmount);
+
 
   try {
     const info = await sendWithRetry({

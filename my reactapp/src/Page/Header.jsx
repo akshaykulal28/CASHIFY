@@ -68,7 +68,7 @@ function Header() {
           />
         </div>
 
-        <div className="nav-right">
+        {/* <div className="nav-right">
           <div className="location">
             <span className="location-icon"></span>
             <span>Mangalore</span>
@@ -88,9 +88,10 @@ function Header() {
               </button>
             </>
           ) : (
-            <button className="login-btn" onClick={() => navigate('/login')}>Login</button>
+            <button className="login-btn" onClick={() => navigate('/Myaccount')}>My Account</button>
           )}
-        </div>
+        </div> */}
+        <button className="login-btn" onClick={() => navigate('/Myaccount')}>My Account</button>
       </nav>
 
       <nav className="bottom-nav">

@@ -20,14 +20,15 @@ import SellPhone from './Page/SellPhone';
 import SellLaptop from './Page/SellLaptop';
 import ManageRequest from './Admin/ManageRequest';
 import Dashboard from './Admin/Dashboard';
+import MyAccount from './Page/MyAccount';
 
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Login />} />
         <Route path="/adminlogin" element={<AdminLogin />} />
         <Route path="/adminPanel" element={<AdminPanel />} />
         <Route path="/AddProduct" element={<AddProduct />} />
@@ -46,6 +47,7 @@ function App() {
         <Route path="/selllaptop" element={<SellLaptop />} />
         <Route path="/Managerequest" element={<ManageRequest />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/Myaccount" element={<MyAccount />} />
 
       </Routes>
     </Router>

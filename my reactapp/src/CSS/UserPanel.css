@@ -1,0 +1,144 @@
+.userPanel {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top, rgba(252, 128, 25, 0.12), transparent 28%),
+        linear-gradient(180deg, #fffaf5 0%, #f8fafc 45%, #eef2f7 100%);
+    padding: 32px 16px 48px;
+
+}
+
+.userPanel .container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.userPanel .title {
+    margin: 0 0 24px;
+    text-align: center;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    color: #111827;
+}
+
+.userPanel .cardGrid,
+.userPanel .chartGrid {
+    display: grid;
+    gap: 18px;
+}
+
+.userPanel .cardGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 20px;
+}
+
+.userPanel .card,
+.userPanel .chartBox,
+.userPanel .recentBox {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.userPanel .card {
+    padding: 20px;
+    text-align: center;
+}
+
+.userPanel .card h3,
+.userPanel .chartBox h2,
+.userPanel .recentBox h2 {
+    margin: 0;
+    color: #334155;
+}
+
+.userPanel .card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.userPanel .card p {
+    margin: 12px 0 0;
+    font-size: clamp(1.6rem, 3vw, 2.3rem);
+    font-weight: 700;
+    color: #111827;
+}
+
+.userPanel .chartGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 20px;
+}
+
+.userPanel .chartBox {
+    padding: 18px;
+    min-width: 0;
+}
+
+.userPanel .chartBox h2,
+.userPanel .recentBox h2 {
+    margin-bottom: 16px;
+    font-size: 1.15rem;
+}
+
+.userPanel .recentBox {
+    padding: 18px;
+    overflow-x: auto;
+}
+
+.userPanel table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+.userPanel th,
+.userPanel td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    color: #334155;
+}
+
+.userPanel th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+}
+
+.userPanel tbody tr:hover {
+    background: #f8fafc;
+}
+
+.loading {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    color: #111827;
+}
+
+@media (max-width: 980px) {
+    .userPanel .cardGrid,
+    .userPanel .chartGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .userPanel {
+        padding: 20px 12px 32px;
+    }
+
+    .userPanel .title {
+        text-align: left;
+        margin-bottom: 18px;
+    }
+
+    .userPanel .card,
+    .userPanel .chartBox,
+    .userPanel .recentBox {
+        border-radius: 14px;
+        padding: 16px;
+    }
+}
