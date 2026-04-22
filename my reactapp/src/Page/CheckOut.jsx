@@ -1,11 +1,13 @@
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
+import { AuthContext } from '../Context/AuthContext';
 import '../CSS/Checkout.css';
 
 function CheckOut() {
     const navigate = useNavigate();
     const { cartItems, getCartTotal } = useContext(CartContext);
+    const { userEmail } = useContext(AuthContext);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [shippingAddress, setShippingAddress] = useState({
@@ -64,6 +66,9 @@ function CheckOut() {
         try {
             sessionStorage.setItem('pendingCheckoutItems', JSON.stringify(cartItems));
             sessionStorage.setItem('pendingCheckoutAddress', JSON.stringify(normalizedAddress));
+            if (userEmail) {
+                sessionStorage.setItem('pendingCustomerEmail', userEmail);
+            }
 
             const response = await fetch(`${API}/api/payment/create-payment-intent`, {
                 method: 'POST',

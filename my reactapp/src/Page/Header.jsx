@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../Context/AuthContext';
 import '../CSS/Header.css';
 
 function Header() {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const navigate = useNavigate();
+  const { userEmail, isAuthenticated, clearUserProfile } = useContext(AuthContext);
 
   const navItems = [
     { 
@@ -72,7 +74,22 @@ function Header() {
             <span>Mangalore</span>
             <span className="dropdown-arrow">▾</span>
           </div>
-          <button className="login-btn" onClick={() => navigate('/login')}>Login</button>
+          {isAuthenticated && userEmail ? (
+            <>
+              <span className="login-btn" title={userEmail}>{userEmail}</span>
+              <button
+                className="login-btn"
+                onClick={() => {
+                  clearUserProfile();
+                  navigate('/login');
+                }}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <button className="login-btn" onClick={() => navigate('/login')}>Login</button>
+          )}
         </div>
       </nav>
 

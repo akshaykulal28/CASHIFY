@@ -50,7 +50,7 @@ const phoneSubmissionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'reviewing', 'accepted', 'rejected'],
+    enum: ['pending', 'reviewing', 'approved_for_collection', 'collected', 'accepted', 'rejected'],
     default: 'pending',
   },
   adminNotes: {

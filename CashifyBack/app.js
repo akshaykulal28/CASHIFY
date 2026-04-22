@@ -34,6 +34,15 @@ function logStartupEnvDiagnostics() {
   if (missingOptional.length) {
     console.warn(`[startup] Optional env vars not set: ${missingOptional.join(', ')}`);
   }
+
+  const smtpPort = Number(process.env.SMTP_PORT || 587);
+  const smtpSecure = String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true';
+  if (smtpSecure && smtpPort === 587) {
+    console.warn('[startup] SMTP_SECURE=true with SMTP_PORT=587 may cause socket close errors. Use SMTP_SECURE=false for 587 or switch to 465 with secure=true.');
+  }
+  if (!smtpSecure && smtpPort === 465) {
+    console.warn('[startup] SMTP_SECURE=false with SMTP_PORT=465 may cause TLS handshake failures. Use SMTP_SECURE=true for 465.');
+  }
 }
 
 function getShippingAddressFromSession(session) {
@@ -193,6 +202,7 @@ mongoose.connect(MONGO_URI)
 
   const userSchema = new mongoose.Schema({
   phone: { type: String, required: true, unique: true },
+  email: { type: String, trim: true, lowercase: true, default: '' },
   password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
@@ -203,10 +213,10 @@ const User = mongoose.model('User', userSchema);
 
 app.post('/api/auth/signup', async (req, res) => {
   try {
-    const { phone, password } = req.body;
+    const { phone, email, password } = req.body;
 
-    if (!phone || !password) {
-      return res.status(400).json({ message: 'Phone and password are required.' });
+    if (!phone || !email || !password) {
+      return res.status(400).json({ message: 'Phone, email and password are required.' });
     }
 
     const existingUser = await User.findOne({ phone });
@@ -214,13 +224,21 @@ app.post('/api/auth/signup', async (req, res) => {
       return res.status(409).json({ message: 'An account with this phone number already exists.' });
     }
 
+    const existingEmail = await User.findOne({ email: String(email).toLowerCase() });
+    if (existingEmail) {
+      return res.status(409).json({ message: 'An account with this email already exists.' });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = new User({ phone, password: hashedPassword });
+    const user = new User({ phone, email: String(email).trim().toLowerCase(), password: hashedPassword });
     await user.save();
 
-    res.status(201).json({ message: 'Account created successfully!' });
+    res.status(201).json({
+      message: 'Account created successfully!',
+      user: { id: user._id, phone: user.phone, email: user.email },
+    });
   } catch (err) {
     console.error('Signup error:', err);
     res.status(500).json({ message: 'Server error. Please try again.' });
@@ -248,7 +266,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.status(200).json({
       message: 'Login successful!',
-      user: { id: user._id, phone: user.phone },
+      user: { id: user._id, phone: user.phone, email: user.email || '' },
     });
   } catch (err) {
     console.error('Login error:', err);

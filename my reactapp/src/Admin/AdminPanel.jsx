@@ -1,3 +1,4 @@
+import React from "react";
 import './AdminPanel.css';
 
 import { useNavigate } from "react-router-dom";
@@ -15,6 +16,7 @@ function AdminPanel() {
                 <button onClick={() => navigate('/ViewService')}>View Service</button>
                 <button onClick={() => navigate('/ManageOrder')}>ManageOrder</button>
                 <button onClick={() => navigate('/Managerequest')}>Manage Request</button>
+                <button onClick={() => navigate('/dashboard')} >Dashboard</button>
 
             </div>
         </div>

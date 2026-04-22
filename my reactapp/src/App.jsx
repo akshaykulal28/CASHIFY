@@ -19,6 +19,7 @@ import PaymentCancel from './Page/PaymentCancel';
 import SellPhone from './Page/SellPhone';
 import SellLaptop from './Page/SellLaptop';
 import ManageRequest from './Admin/ManageRequest';
+import Dashboard from './Admin/Dashboard';
 
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
         <Route path="/sellphone" element={<SellPhone />} />
         <Route path="/selllaptop" element={<SellLaptop />} />
         <Route path="/Managerequest" element={<ManageRequest />} />
+        <Route path="/dashboard" element={<Dashboard />} />
 
       </Routes>
     </Router>

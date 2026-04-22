@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
+import { AuthContext } from '../Context/AuthContext';
 import '../CSS/PaymentSuccess.css';
 
 
@@ -9,6 +10,7 @@ function PaymentSuccess() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { cartItems, clearCart } = useContext(CartContext);
+  const { userEmail, setUserProfile } = useContext(AuthContext);
   const API = import.meta.env.VITE_API;
 
   const [loading, setLoading] = useState(true);
@@ -16,6 +18,8 @@ function PaymentSuccess() {
   const [message, setMessage] = useState('Verifying payment...');
   const [paymentMeta, setPaymentMeta] = useState(null);
   const [emailWarning, setEmailWarning] = useState('');
+
+  const genericEmailDelayMessage = 'Order placed successfully. Confirmation email is delayed. Please check your inbox in a few minutes.';
 
   
 
@@ -57,9 +61,17 @@ function PaymentSuccess() {
           throw new Error('Payment is not completed yet.');
         }
 
-        if (!verifyData.customerEmail) {
-          throw new Error('Payment completed, but customer email was not found in Stripe session.');
+        const storedCustomerEmail = sessionStorage.getItem('pendingCustomerEmail') || '';
+        const resolvedCustomerEmail = verifyData.customerEmail || userEmail || storedCustomerEmail;
+
+        if (!resolvedCustomerEmail) {
+          throw new Error('Payment completed, but customer email was not found in Stripe session or shared auth state.');
         }
+
+        setUserProfile((currentUser) => ({
+          ...(currentUser || {}),
+          email: resolvedCustomerEmail,
+        }));
 
         const storedAddress = JSON.parse(sessionStorage.getItem('pendingCheckoutAddress') || 'null');
         const shippingAddress = verifyData.shippingAddress || storedAddress;
@@ -75,7 +87,7 @@ function PaymentSuccess() {
           setMessage('Payment successful. No pending cart items were found to convert into orders.');
           setPaymentMeta({
             sessionId: verifyData.sessionId,
-            customerEmail: verifyData.customerEmail,
+            customerEmail: resolvedCustomerEmail,
           });
           sessionStorage.setItem(processedKey, '1');
           sessionStorage.removeItem('pendingCheckoutItems');
@@ -94,7 +106,7 @@ function PaymentSuccess() {
             totalAmount: Number(verifyData.amountTotal || 0),
             stripeSessionId: verifyData.sessionId,
             paymentStatus: verifyData.paymentStatus,
-            customerEmail: verifyData.customerEmail,
+            customerEmail: resolvedCustomerEmail,
             shippingAddress,
           };
 
@@ -117,17 +129,19 @@ function PaymentSuccess() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               stripeSessionId: verifyData.sessionId,
-              customerEmail: verifyData.customerEmail,
+              customerEmail: resolvedCustomerEmail,
               currency: verifyData.currency || 'INR',
             }),
           });
 
           const emailData = await emailRes.json();
           if (!emailRes.ok) {
-            setEmailWarning(emailData.message || 'Order placed, but confirmation email is delayed. Please check your inbox shortly.');
+            const errorText = String(emailData?.message || '');
+            const shouldHideDetails = /socket|connection|timeout|smtp|unexpected/i.test(errorText);
+            setEmailWarning(shouldHideDetails ? genericEmailDelayMessage : (emailData.message || genericEmailDelayMessage));
           }
         } catch (emailErr) {
-          setEmailWarning(emailErr.message || 'Order placed, but confirmation email is delayed. Please check your inbox shortly.');
+          setEmailWarning(genericEmailDelayMessage);
         }
 
         sessionStorage.setItem(processedKey, '1');
@@ -136,7 +150,7 @@ function PaymentSuccess() {
         clearCart();
         setPaymentMeta({
           sessionId: verifyData.sessionId,
-          customerEmail: verifyData.customerEmail,
+          customerEmail: resolvedCustomerEmail,
           shippingAddress,
         });
         setMessage('Payment successful and your order has been placed.');

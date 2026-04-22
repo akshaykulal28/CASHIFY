@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 
 
@@ -9,6 +8,7 @@ function ManageRequest() {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [savingId, setSavingId] = useState('');
     const API = import.meta.env.VITE_API;
 
     useEffect(() => {
@@ -31,6 +31,39 @@ function ManageRequest() {
 
             setLoading(false);
         }
+    };
+
+    const updateRequestStatus = async (id, status) => {
+        const notes = window.prompt('Optional admin note for this status update:', '');
+
+        setSavingId(id);
+        setError('');
+        try {
+            const res = await fetch(`${API}/api/phone-submission/${id}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status, adminNotes: notes || '' }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || data.message || 'Failed to update request status.');
+            }
+
+            setRequests((prev) => prev.map((item) => item._id === id ? data.submission : item));
+        } catch (err) {
+            setError(err.message || 'Failed to update request status.');
+        } finally {
+            setSavingId('');
+        }
+    };
+
+    const getStatusLabel = (status) => {
+        if (status === 'approved_for_collection' || status === 'accepted') return 'Approved for Collection';
+        if (status === 'collected') return 'Collected';
+        if (status === 'reviewing') return 'Reviewing';
+        if (status === 'rejected') return 'Rejected';
+        return 'Pending';
     };
 
 
@@ -59,6 +92,10 @@ function ManageRequest() {
                             <th>Condition</th>
                             <th>Battery Life</th>
                             <th>Duration Used</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Admin Notes</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
 
@@ -72,6 +109,35 @@ function ManageRequest() {
                                 <td>{req.condition}</td>
                                 <td>{req.batteryLife}</td>
                                 <td>{req.durationUsed}</td>
+                                <td>
+                                    <div>{req.email}</div>
+                                    <div>{req.phone}</div>
+                                </td>
+                                <td>{getStatusLabel(req.status)}</td>
+                                <td>{req.adminNotes || '-'}</td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        disabled={savingId === req._id || req.status === 'approved_for_collection' || req.status === 'collected'}
+                                        onClick={() => updateRequestStatus(req._id, 'approved_for_collection')}
+                                    >
+                                        Approve Collection
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={savingId === req._id || req.status === 'collected'}
+                                        onClick={() => updateRequestStatus(req._id, 'collected')}
+                                    >
+                                        Mark Collected
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={savingId === req._id || req.status === 'rejected' || req.status === 'collected'}
+                                        onClick={() => updateRequestStatus(req._id, 'rejected')}
+                                    >
+                                        Reject
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>

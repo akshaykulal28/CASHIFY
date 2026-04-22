@@ -28,6 +28,9 @@ function createTransporter() {
     host: smtpHost,
     port: smtpPort,
     secure: smtpSecure,
+    connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT || 20000),
+    greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT || 15000),
+    socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT || 30000),
     auth: {
       user: smtpUser,
       pass: smtpPass,
@@ -35,10 +38,8 @@ function createTransporter() {
   });
 }
 
-const transporter = createTransporter();
-
 function ensureEmailConfig() {
-  if (!transporter) {
+  if (!smtpHost || !smtpUser || !smtpPass) {
     throw new Error('Email service is not configured. Please set SMTP_HOST, SMTP_USER and SMTP_PASS.');
   }
 
@@ -49,16 +50,70 @@ function ensureEmailConfig() {
 
 function normalizeSendMailError(err, contextLabel) {
   const code = String(err?.code || '').toUpperCase();
+  const rawMessage = String(err?.message || '');
 
   if (code === 'EAUTH') {
     return new Error(`${contextLabel}: SMTP authentication failed. Verify SMTP_USER and SMTP_PASS.`);
   }
 
-  if (code === 'ETIMEDOUT' || code === 'ECONNECTION' || code === 'ESOCKET') {
+  if (
+    code === 'ETIMEDOUT' ||
+    code === 'ECONNECTION' ||
+    code === 'ESOCKET' ||
+    code === 'ECONNRESET' ||
+    code === 'EPIPE' ||
+    /unexpected socket close|socket hang up|connection closed|timed out/i.test(rawMessage)
+  ) {
     return new Error(`${contextLabel}: SMTP connection failed. Verify SMTP_HOST, SMTP_PORT, SMTP_SECURE and provider network access.`);
   }
 
-  return new Error(`${contextLabel}: ${err?.message || 'unknown email send error'}`);
+  return new Error(`${contextLabel}: ${rawMessage || 'unknown email send error'}`);
+}
+
+function isTransientMailError(err) {
+  const code = String(err?.code || '').toUpperCase();
+  const rawMessage = String(err?.message || '');
+  return (
+    code === 'ETIMEDOUT' ||
+    code === 'ECONNECTION' ||
+    code === 'ESOCKET' ||
+    code === 'ECONNRESET' ||
+    code === 'EPIPE' ||
+    /unexpected socket close|socket hang up|connection closed|timed out|temporary/i.test(rawMessage)
+  );
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function sendWithRetry(mailOptions, contextLabel) {
+  const maxAttempts = Number(process.env.SMTP_RETRY_ATTEMPTS || 3);
+  const baseDelayMs = Number(process.env.SMTP_RETRY_BASE_DELAY_MS || 1200);
+
+  let lastError;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const transporter = createTransporter();
+      if (!transporter) {
+        throw new Error('Email service is not configured. Please set SMTP_HOST, SMTP_USER and SMTP_PASS.');
+      }
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (err) {
+      lastError = err;
+      const shouldRetry = attempt < maxAttempts && isTransientMailError(err);
+      console.error(`[mail] ${contextLabel} attempt ${attempt}/${maxAttempts} failed:`, err?.message || err);
+      if (!shouldRetry) {
+        break;
+      }
+
+      const waitMs = baseDelayMs * attempt;
+      await delay(waitMs);
+    }
+  }
+
+  throw normalizeSendMailError(lastError, contextLabel);
 }
 
 function capitalize(value) {
@@ -127,15 +182,15 @@ async function sendOrderConfirmationEmail({ to, orders, sessionId, currency = 'I
   const html = buildEmailHtml(orders, sessionId, currency, totalAmount);
 
   try {
-    const info = await transporter.sendMail({
+    const info = await sendWithRetry({
       from: mailFrom,
       to,
       subject: 'Payment Successful - Order Confirmation',
       html,
-    });
+    }, 'Unable to send order confirmation email');
     console.info(`[mail] Order confirmation sent. sessionId=${sessionId} to=${to} messageId=${info?.messageId || 'n/a'}`);
   } catch (err) {
-    throw normalizeSendMailError(err, 'Unable to send order confirmation email');
+    throw err;
   }
 }
 
@@ -156,15 +211,15 @@ async function sendDeliveryStatusEmail({ to, orderName, deliveryStatus }) {
   `;
 
   try {
-    const info = await transporter.sendMail({
+    const info = await sendWithRetry({
       from: mailFrom,
       to,
       subject: `Order Status Update - ${formattedStatus}`,
       html,
-    });
+    }, 'Unable to send delivery status email');
     console.info(`[mail] Delivery status email sent. status=${formattedStatus} to=${to} messageId=${info?.messageId || 'n/a'}`);
   } catch (err) {
-    throw normalizeSendMailError(err, 'Unable to send delivery status email');
+    throw err;
   }
 }
 

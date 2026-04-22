@@ -116,7 +116,16 @@ router.post('/send-confirmation', async (req, res) => {
         return res.status(200).json({ message: 'Confirmation email sent successfully.' });
     } catch (err) {
         console.error('Send confirmation email error:', err);
-        return res.status(500).json({ message: err.message || 'Failed to send confirmation email.' });
+        const message = String(err?.message || '');
+        const isTransportFailure = /smtp|socket|timeout|connection|unable to send order confirmation email/i.test(message);
+        if (isTransportFailure) {
+            return res.status(202).json({
+                message: 'Order placed successfully. Confirmation email is delayed. Please check your inbox shortly.',
+                emailDelayed: true,
+            });
+        }
+
+        return res.status(500).json({ message: 'Failed to send confirmation email.' });
     }
 });
 

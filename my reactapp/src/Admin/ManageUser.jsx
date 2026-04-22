@@ -62,6 +62,7 @@ function ManageUser() {
                     <table className="mu-table">
                             <tr>
                                 <th>#</th>
+                                <th>Email</th>
                                 <th>Phone Number</th>
                                 <th>Joined On</th>
                                 <th>Action</th>
@@ -70,6 +71,7 @@ function ManageUser() {
                             {users.map((user, index) => (
                                 <tr key={user._id}>
                                     <td>{index + 1}</td>
+                                    <td>{user.email || '-'}</td>
                                     <td>{user.phone}</td>
                                     <td>{new Date(user.createdAt).toLocaleDateString('en-IN', {
                                         day: '2-digit', month: 'short', year: 'numeric'

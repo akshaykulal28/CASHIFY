@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../Context/AuthContext';
 import '../CSS/login.css';
 
 function Login() {
   const [activeTab, setActiveTab] = useState('login'); 
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
+  const { setUserProfile } = useContext(AuthContext);
   const API = import.meta.env.VITE_API;
 
   const resetForm = () => {
     setPhoneNumber('');
+    setEmail('');
     setPassword('');
     setConfirmPassword('');
     setAgreed(false);
@@ -37,6 +41,11 @@ function Login() {
       return;
     }
 
+    if (activeTab === 'signup' && !email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
 
     try {
       const res = await fetch(`${API}/api/auth/login`, {
@@ -48,7 +57,7 @@ function Login() {
       const data = await res.json();
       if (res.ok) {
         setSuccess('Login successful!');
-        
+        setUserProfile(data.user || { phone: phoneNumber, email: '' });
         setTimeout(() => navigate('/'), 1000);
       } else {
         setError(data.message || 'Login failed.');
@@ -69,6 +78,10 @@ function Login() {
       setError('Please fill in all fields.');
       return;
     }
+    if (!email.trim()) {
+      setError('Please fill in all fields.');
+      return;
+    }
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -86,7 +99,7 @@ function Login() {
       const res = await fetch(`${API}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneNumber, password }),
+        body: JSON.stringify({ phone: phoneNumber, email: email.trim(), password }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -170,6 +183,16 @@ function Login() {
            
 
             <form className="auth-form" onSubmit={handleSignup}>
+              <label className="auth-label">Email</label>
+              <input
+                type="email"
+                className="auth-input"
+                placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
               <label className="auth-label">Phone Number</label>
               <input
                 type="tel"

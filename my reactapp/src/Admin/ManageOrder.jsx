@@ -10,6 +10,7 @@ function ManageOrder (){
 
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
+    const [searchEmail, setSearchEmail] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [updatingOrderId, setUpdatingOrderId] = useState(null);
@@ -19,11 +20,17 @@ function ManageOrder (){
 
     useEffect( () => { fetchOrders (); }, []);
 
-    const fetchOrders = async () => {
+    const fetchOrders = async (email = '') => {
         setLoading(true);
         setError('');
         try{
-            const res = await fetch(`${API}/api/order/all`);
+            const params = new URLSearchParams();
+            if (email.trim()) {
+                params.set('customerEmail', email.trim());
+            }
+
+            const query = params.toString();
+            const res = await fetch(`${API}/api/order/all${query ? `?${query}` : ''}`);
             const data = await res.json();
             if(res.ok) setOrders(data);
             else setError(data.message || 'Failed to fetch orders.');
@@ -32,6 +39,16 @@ function ManageOrder (){
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSearch = (event) => {
+        event.preventDefault();
+        fetchOrders(searchEmail);
+    };
+
+    const clearSearch = () => {
+        setSearchEmail('');
+        fetchOrders('');
     };
 
     const handleDeliveryStatusChange = async (orderId, newStatus, customerEmail, orderName) => {
@@ -95,14 +112,26 @@ function ManageOrder (){
                 <div className="mo-header">
                     <button className="mu-back-btn" onClick={() => navigate('/AdminPanel')}>&#8592; Back</button>
                     <h2>Manage order</h2>
-                    <button className="mu-refresh-btn" onClick={fetchOrders}> Refresh</button>
+                    <button className="mu-refresh-btn" onClick={() => fetchOrders(searchEmail)}> Refresh</button>
                 </div>
+                <form className="mo-searchBar" onSubmit={handleSearch}>
+                    <input
+                        type="email"
+                        placeholder="Search orders by customer email"
+                        value={searchEmail}
+                        onChange={(event) => setSearchEmail(event.target.value)}
+                    />
+                    <button type="submit">Search</button>
+                    <button type="button" onClick={clearSearch}>Show all</button>
+                </form>
                 {loading && <p className="mo-status">Loading Orders details..</p>  }
                 {error && <p className="mo-status-error">{error}</p>}
                 {updateError && <p className="mo-status-error">{updateError}</p>}
 
                 {!loading && !error && orders.length === 0 && (
-                    <p className="mo-status">No orders found..</p>
+                    <p className="mo-status">
+                        {searchEmail.trim() ? 'No orders found for this user.' : 'No orders found..'}
+                    </p>
                 )}
 
                 {!loading && !error && orders.length >0 && (
@@ -110,6 +139,7 @@ function ManageOrder (){
                     <table className="mo-table">
                             <tr>
                                 <th>#</th>
+                                <th>User Email</th>
                                 <th>Product Id</th>
                                 <th>Product Name</th>
                                 <th>Quantity</th>
@@ -123,6 +153,7 @@ function ManageOrder (){
                             {orders.map((user, index) => (
                                 <tr key={user._id || index}>
                                     <td>{index + 1}</td>
+                                    <td>{user.customerEmail || '-'}</td>
                                     <td>{user.productId}</td>
                                     <td>{user.name}</td>
                                     <td>{user.quantity}</td>

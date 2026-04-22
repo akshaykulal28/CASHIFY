@@ -94,14 +94,16 @@ router.get('/:id', async (req, res) => {
 router.patch('/:id/status', async (req, res) => {
   try {
     const { status, adminNotes } = req.body;
+    const normalizedStatus = status === 'accepted' ? 'approved_for_collection' : status;
+    const validStatuses = ['pending', 'reviewing', 'approved_for_collection', 'collected', 'rejected'];
 
-    if (!['pending', 'reviewing', 'accepted', 'rejected'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
+    if (!validStatuses.includes(normalizedStatus)) {
+      return res.status(400).json({ error: 'Invalid status. Valid values: pending, reviewing, approved_for_collection, collected, rejected.' });
     }
 
     const submission = await PhoneSubmission.findByIdAndUpdate(
       req.params.id,
-      { status, adminNotes: adminNotes || '' },
+      { status: normalizedStatus, adminNotes: adminNotes || '' },
       { new: true, runValidators: true }
     );
 
