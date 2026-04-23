@@ -1,5 +1,6 @@
 import '../CSS/SellOld.css';
 
+import { useNavigate } from 'react-router-dom';
 import SellPhone from '../assets/Sell phone.avif';
 import SellLaptop from '../assets/Sell Laptop.avif';
 import SellTv from '../assets/Sell Tv.avif';
@@ -21,13 +22,14 @@ const sellItems = [
 ];
 
 function SellOld() {
+  const navigate = useNavigate();
   return (
     <section className="sell-old-section">
       <h2 className="sell-section-title">Sell Your Old Device Now</h2>
       <div className="sell-old-grid">
         {sellItems.map((item, index) => (
           <div className="sell-card" key={index}>
-            <div className="sell-card-img">
+            <div className="sell-card-img" onClick ={() => navigate(`/service/${item.label}`)}>
               <img src={item.img} alt={item.label} />
             </div>
             <span className="sell-card-label">{item.label}</span>

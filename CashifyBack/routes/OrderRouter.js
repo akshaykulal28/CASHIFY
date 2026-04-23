@@ -177,6 +177,7 @@ router.get('/all', async (req,res) => {
     }
 });
 
+
 router.get('/user/dashboard/:id', async (req, res) => {
     try {
         const userId = req.params.id;
@@ -265,6 +266,10 @@ router.get('/user/dashboard/:id', async (req, res) => {
     }
 });
 
+
+
+
+
 router.patch('/update-delivery-status/:orderId', async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -310,6 +315,8 @@ router.patch('/update-delivery-status/:orderId', async (req, res) => {
     }
 });
 
+
+
 router.delete('/:id', async (req, res) => {
     try {
         const deleted = await Order.findByIdAndDelete(req.params.id);
@@ -322,6 +329,44 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+
+
+router.get('/dashboard/status-chart', async (req, res) => {
+    try {
+        const orders = await Order.find();
+
+        delivered = orders.filter((o) => o.status === 'Delivered' || o.deliveryStatus === 'delivered').length;
+
+        cancelled = orders.filter((o) => o.status === 'Cancelled' || o.paymentStatus === 'cancelled').length;
+
+        pending = orders.filter((o) => {
+            return (
+                o.status === 'Placed' ||
+                o.status === 'Preparing' ||
+                o.status === 'Out for Delivery' ||
+                o.deliveryStatus === 'pending' ||
+                o.deliveryStatus === 'shipped'
+            );
+        }).length;
+
+        const statusChart = [
+            { name: 'Delivered', value: delivered },
+            { name: 'Pending', value: pending },
+            { name: 'Cancelled', value: cancelled },
+        ];
+
+        res.json({
+            statusChart,
+            delivered,
+            pending,
+            cancelled,
+        });
+    }
+       
+        catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 
 

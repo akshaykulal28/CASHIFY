@@ -1,6 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
+import axios from 'axios';
+
+import {
+	PieChart,
+	Pie,
+	Cell,
+	Tooltip,
+	Legend,
+	BarChart,
+	Bar,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	ResponsiveContainer
+} from 'recharts';
 
 function Dashboard() {
 	const navigate = useNavigate();
@@ -21,21 +36,12 @@ function Dashboard() {
 		salesYear: 0,
 	});
 
-	const quickLinks = useMemo(() => ([
-		{ label: 'Add Product', path: '/AddProduct' },
-		{ label: 'View Product', path: '/ViewProduct' },
-		{ label: 'Manage Users', path: '/ManageUser' },
-		{ label: 'Add Service', path: '/AddService' },
-		{ label: 'View Service', path: '/ViewService' },
-		{ label: 'Manage Orders', path: '/ManageOrder' },
-		{ label: 'Manage Requests', path: '/Managerequest' },
-		{ label: 'Admin Panel', path: '/adminPanel' },
-	]), []);
+	const [dashboardd, setdashboardd] = useState(null);
 
+	
 	const loadDashboard = async () => {
 		setLoading(true);
 		setError('');
-
 		try {
 			const requests = [
 				fetch(`${API}/api/products/all`),
@@ -46,7 +52,6 @@ function Dashboard() {
 			];
 
 			const [productsRes, servicesRes, usersRes, ordersRes, requestsRes] = await Promise.all(requests);
-
 			const [products, services, users, orders, requestItems] = await Promise.all([
 				productsRes.json(),
 				servicesRes.json(),
@@ -55,7 +60,7 @@ function Dashboard() {
 				requestsRes.json(),
 			]);
 
-			if (!productsRes.ok || !servicesRes.ok || !usersRes.ok || !ordersRes.ok || !requestsRes.ok) {
+			if (!productsRes.ok || !servicesRes.ok || !usersRes.ok || !ordersRes.ok || !requestsRes.ok ) {
 				throw new Error('Failed to load dashboard metrics.');
 			}
 
@@ -91,6 +96,7 @@ function Dashboard() {
 					&& orderDate.getMonth() === currentMonth
 					&& orderDate.getDate() === currentDay;
 			}).length;
+			
 
 			setMetrics({
 				products: Array.isArray(products) ? products.length : 0,
@@ -111,9 +117,38 @@ function Dashboard() {
 		}
 	};
 
+	// const loadcharts = async () => {
+	// 	try {
+	// 		const res = await axios.get(`${API}/api/order/dashboard/status-chart`);
+	// 		setdashboardd(res.data);
+	// 	} catch (err) {
+	// 		console.log('Error loading chart data:', err);
+	// 	}
+	// };
+
 	useEffect(() => {
 		loadDashboard();
+		// loadcharts();
 	}, []);
+
+	const pieColors = [
+		 "#22c55e",
+        "#f59e0b",
+        "#ef4444",
+        "#3b82f6",
+        "#8b5cf6"
+	];
+ 
+	const salesdata = [
+		{ name: 'Today', value: metrics.salesToday },
+		{ name: 'This Month', value: metrics.salesMonth },
+		{ name: 'This Year', value: metrics.salesYear },
+	]
+
+	const orderstatusdata = [
+		{ name: 'Pending', value: metrics.pendingOrders },
+		{ name: 'Delivered', value: metrics.orders - metrics.pendingOrders },
+	]
 
 	return (
 		<div className="dashboard-page">
@@ -173,13 +208,45 @@ function Dashboard() {
 					</article>
 				</section>
 
-				<section className="dashboard-actions" aria-label="Quick actions">
-					{quickLinks.map((link) => (
-						<button key={link.path} type="button" onClick={() => navigate(link.path)}>
-							{link.label}
-						</button>
-					))}
-				</section>
+                <div>
+					<h2>Order Status</h2>
+				
+				<ResponsiveContainer width="100%" height={300} className="dashboard-chart">
+					<PieChart>
+						<Pie
+						    data={orderstatusdata} 
+							dataKey="value"
+							nameKey="name"
+							outerRadius={120}
+							label
+						>
+							{orderstatusdata.map((entry, index) => (
+								<Cell key={`cell-${index}`}
+								 fill={pieColors[index % pieColors.length]} />
+							))}
+						</Pie>
+						<Tooltip />
+						<Legend />
+					 </PieChart>
+				</ResponsiveContainer>
+				</div>	
+
+				<div className="dashboard-chart">
+					<h2>Sales Overview</h2>
+					<ResponsiveContainer width="100%" height={300}>
+						<BarChart data={salesdata}>
+							<CartesianGrid strokeDasharray="3 3" />
+							<XAxis dataKey="name" />
+							<YAxis />
+							<Tooltip />
+							<Legend />
+							<Bar dataKey="value" fill="#8884d8" />
+						</BarChart>
+					</ResponsiveContainer>
+					</div>
+					
+
+				
 			</div>
 		</div>
 	);

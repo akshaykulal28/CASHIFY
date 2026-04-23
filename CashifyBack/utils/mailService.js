@@ -15,6 +15,10 @@ const DELIVERY_STATUS_MESSAGES = {
   pending: 'Your order is being prepared for shipment.',
 };
 
+
+
+
+
 function createTransporter() {
   const missing = [];
   if (!smtpHost) missing.push('SMTP_HOST');
@@ -40,6 +44,10 @@ function createTransporter() {
   });
 }
 
+
+
+
+
 function ensureEmailConfig() {
   if (!smtpHost || !smtpUser || !smtpPass) {
     throw new Error('Email service is not configured. Please set SMTP_HOST, SMTP_USER and SMTP_PASS.');
@@ -49,6 +57,13 @@ function ensureEmailConfig() {
     throw new Error('MAIL_FROM is missing.');
   }
 }
+
+
+
+
+
+
+
 
 function normalizeSendMailError(err, contextLabel) {
   const code = String(err?.code || '').toUpperCase();
@@ -71,6 +86,13 @@ function normalizeSendMailError(err, contextLabel) {
 
   return new Error(`${contextLabel}: ${rawMessage || 'unknown email send error'}`);
 }
+
+
+
+
+
+
+
 
 function isTransientMailError(err) {
   const code = String(err?.code || '').toUpperCase();
@@ -118,14 +140,26 @@ async function sendWithRetry(mailOptions, contextLabel) {
   throw normalizeSendMailError(lastError, contextLabel);
 }
 
+
+
+
 function capitalize(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
+
+
+
+
+
 
 function formatCurrency(value) {
   const amount = Number(value || 0);
   return amount.toFixed(2);
 }
+
+
+
+
 
 function getConfiguredGstRate() {
   const parsed = Number(process.env.GST_RATE_PERCENT);
@@ -135,6 +169,11 @@ function getConfiguredGstRate() {
 
   return 18;
 }
+
+
+
+
+
 
 function calculateInvoiceBreakdown(orders, fallbackTotal = 0, gstRatePercent = getConfiguredGstRate()) {
   const lineItems = orders.map((order) => {
@@ -166,10 +205,16 @@ function calculateInvoiceBreakdown(orders, fallbackTotal = 0, gstRatePercent = g
   };
 }
 
+
+
 function writeLabelValue(doc, label, value, y) {
   doc.font('Helvetica-Bold').fontSize(10).text(label, 40, y, { width: 220 });
   doc.font('Helvetica').fontSize(10).text(String(value || '-'), 260, y, { width: 290 });
 }
+
+
+
+
 
 function collectInvoiceDetails(orders, sessionId, currency, totalAmount) {
   const shippingAddress = orders.find((order) => order.shippingAddress)?.shippingAddress || null;
@@ -186,6 +231,8 @@ function collectInvoiceDetails(orders, sessionId, currency, totalAmount) {
     invoiceDate,
   };
 }
+
+
 
 async function generateGstInvoiceAttachment({ orders, sessionId, currency = 'INR', totalAmount = 0 }) {
   const safeOrders = Array.isArray(orders) ? orders : [];
@@ -221,7 +268,7 @@ async function generateGstInvoiceAttachment({ orders, sessionId, currency = 'INR
     const invoiceNumber = `INV-${String(details.sessionId || 'NA').slice(-10).toUpperCase()}`;
     writeLabelValue(doc, 'Invoice Number', invoiceNumber, 130);
     writeLabelValue(doc, 'Invoice Date', details.invoiceDate.toISOString().slice(0, 10), 146);
-    writeLabelValue(doc, 'Payment Session', details.sessionId || '-', 162);
+    
     writeLabelValue(doc, 'Customer Email', details.customerEmail || '-', 178);
 
     if (details.shippingAddress) {
@@ -261,7 +308,7 @@ async function generateGstInvoiceAttachment({ orders, sessionId, currency = 'INR
     y += 10;
 
     doc.font('Helvetica').fontSize(10);
-    doc.text(`Taxable Amount (GST inclusive split): ${formatCurrency(breakdown.taxableAmount)} ${currencyCode}`, 300, y, { width: 255, align: 'right' });
+    doc.text(` Amount : ${formatCurrency(breakdown.taxableAmount)} ${currencyCode}`, 300, y, { width: 255, align: 'right' });
     y += 16;
     doc.text(`GST Total @ ${formatCurrency(breakdown.gstRatePercent)}%: ${formatCurrency(breakdown.gstAmount)} ${currencyCode}`, 300, y, { width: 255, align: 'right' });
     y += 16;

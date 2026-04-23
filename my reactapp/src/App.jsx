@@ -43,8 +43,8 @@ function App() {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-cancel" element={<PaymentCancel />} />
         <Route path="/ManageOrder" element={<ManageOrder />} />
-        <Route path="/sellphone" element={<SellPhone />} />
-        <Route path="/selllaptop" element={<SellLaptop />} />
+        <Route path="/service/Sell Phone" element={<SellPhone />} />
+        <Route path="/service/Sell Laptop" element={<SellLaptop />} />
         <Route path="/Managerequest" element={<ManageRequest />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/Myaccount" element={<MyAccount />} />

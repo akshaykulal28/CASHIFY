@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import '../CSS/UserPanel.css';
+
 import {
     PieChart,
     Pie,
@@ -73,7 +74,7 @@ function UserPanel() {
             <div className="container">
 
                 <h1 className="title">
-                    Welcome, {storedUser?.name}
+                    Welcome  {storedUser?.name}
                 </h1>
 
                 <div className="cardGrid">

@@ -64,10 +64,10 @@ function OurService() {
       <div className="our-service-grid">
         {products.map((product) => (
           <div className="service-card">
-            <div className="service-card-img">
-              <Link to="/sellphone" >
+            <div className="service-card-img" onClick={() => navigate(`/service/${product.Title}`)}>
+              
               <img src={`${API}/uploads/${product.ImageUrl}`} alt={product.Title}/>
-              </Link>
+              
             </div>
             <span className="service-card-label">{product.Title}</span>
           </div>
