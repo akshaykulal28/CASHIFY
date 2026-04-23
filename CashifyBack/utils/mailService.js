@@ -1,15 +1,13 @@
 const nodemailer = require('nodemailer');
 const PDFDocument = require('pdfkit');
-const fs = require('fs');
-const path = require('path');
 
 
-const smtpHost = process.env.SMTP_HOST;
+const smtpHost = String(process.env.SMTP_HOST || '').trim();
 const smtpPort = Number(process.env.SMTP_PORT || 587);
 const smtpSecure = String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true';
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASS;
-const mailFrom = process.env.MAIL_FROM || smtpUser;
+const smtpUser = String(process.env.SMTP_USER || '').trim();
+const smtpPass = String(process.env.SMTP_PASS || '').replace(/\s+/g, '');
+const mailFrom = String(process.env.MAIL_FROM || smtpUser || '').trim();
 
 const DELIVERY_STATUS_MESSAGES = {
   delivered: 'Your order has been delivered! Thank you for shopping with us.',
@@ -129,6 +127,153 @@ function formatCurrency(value) {
   return amount.toFixed(2);
 }
 
+function getConfiguredGstRate() {
+  const parsed = Number(process.env.GST_RATE_PERCENT);
+  if (Number.isFinite(parsed) && parsed >= 0) {
+    return parsed;
+  }
+
+  return 18;
+}
+
+function calculateInvoiceBreakdown(orders, fallbackTotal = 0, gstRatePercent = getConfiguredGstRate()) {
+  const lineItems = orders.map((order) => {
+    const quantity = Number(order.quantity || 0);
+    const unitPrice = Number(order.price || 0);
+    const lineTotal = quantity * unitPrice;
+    return {
+      name: order.name || 'Item',
+      quantity,
+      unitPrice,
+      lineTotal,
+    };
+  });
+
+  const computedGrandTotal = lineItems.reduce((sum, item) => sum + item.lineTotal, 0);
+  const grandTotal = computedGrandTotal > 0 ? computedGrandTotal : Number(fallbackTotal || 0);
+  const rate = Number(gstRatePercent || 0);
+  const divisor = 1 + (rate / 100);
+
+  const taxableAmount = divisor > 0 ? grandTotal / divisor : grandTotal;
+  const gstAmount = grandTotal - taxableAmount;
+
+  return {
+    lineItems,
+    grandTotal,
+    taxableAmount,
+    gstAmount,
+    gstRatePercent: rate,
+  };
+}
+
+function writeLabelValue(doc, label, value, y) {
+  doc.font('Helvetica-Bold').fontSize(10).text(label, 40, y, { width: 220 });
+  doc.font('Helvetica').fontSize(10).text(String(value || '-'), 260, y, { width: 290 });
+}
+
+function collectInvoiceDetails(orders, sessionId, currency, totalAmount) {
+  const shippingAddress = orders.find((order) => order.shippingAddress)?.shippingAddress || null;
+  const firstOrderDate = orders.find((order) => order.createdAt)?.createdAt || new Date();
+  const createdAt = new Date(firstOrderDate);
+  const invoiceDate = Number.isNaN(createdAt.getTime()) ? new Date() : createdAt;
+
+  return {
+    sessionId,
+    currency: String(currency || 'INR').toUpperCase(),
+    totalAmount: Number(totalAmount || 0),
+    shippingAddress,
+    customerEmail: orders.find((order) => order.customerEmail)?.customerEmail || '',
+    invoiceDate,
+  };
+}
+
+async function generateGstInvoiceAttachment({ orders, sessionId, currency = 'INR', totalAmount = 0 }) {
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  if (!safeOrders.length) {
+    throw new Error('Cannot generate invoice: no orders available.');
+  }
+
+  const details = collectInvoiceDetails(safeOrders, sessionId, currency, totalAmount);
+  const breakdown = calculateInvoiceBreakdown(safeOrders, details.totalAmount);
+
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    const chunks = [];
+
+    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('error', (err) => reject(err));
+    doc.on('end', () => {
+      const fileSafeSessionId = String(sessionId || 'session').replace(/[^a-zA-Z0-9_-]/g, '');
+      resolve({
+        filename: `gst-invoice-${fileSafeSessionId || 'session'}.pdf`,
+        content: Buffer.concat(chunks),
+        contentType: 'application/pdf',
+      });
+    });
+
+    doc.font('Helvetica-Bold').fontSize(20).text('TAX INVOICE', { align: 'center' });
+    doc.moveDown(0.4);
+    doc.font('Helvetica').fontSize(10).text('Cashify', { align: 'center' });
+    doc.text('Payment Confirmation Invoice', { align: 'center' });
+    doc.moveDown(1);
+
+    const currencyCode = details.currency;
+    const invoiceNumber = `INV-${String(details.sessionId || 'NA').slice(-10).toUpperCase()}`;
+    writeLabelValue(doc, 'Invoice Number', invoiceNumber, 130);
+    writeLabelValue(doc, 'Invoice Date', details.invoiceDate.toISOString().slice(0, 10), 146);
+    writeLabelValue(doc, 'Payment Session', details.sessionId || '-', 162);
+    writeLabelValue(doc, 'Customer Email', details.customerEmail || '-', 178);
+
+    if (details.shippingAddress) {
+      const addressLine = [
+        details.shippingAddress.fullName,
+        details.shippingAddress.street,
+        [details.shippingAddress.city, details.shippingAddress.state].filter(Boolean).join(', '),
+        [details.shippingAddress.postalCode, details.shippingAddress.country].filter(Boolean).join(', '),
+      ].filter(Boolean).join(' | ');
+      writeLabelValue(doc, 'Shipping Address', addressLine, 194);
+    }
+
+    let y = details.shippingAddress ? 225 : 210;
+    doc.moveTo(40, y).lineTo(555, y).stroke('#d0d0d0');
+    y += 12;
+
+    doc.font('Helvetica-Bold').fontSize(10);
+    doc.text('Item', 40, y, { width: 220 });
+    doc.text('Qty', 265, y, { width: 50, align: 'right' });
+    doc.text('Unit Price', 320, y, { width: 100, align: 'right' });
+    doc.text('Total', 425, y, { width: 130, align: 'right' });
+    y += 18;
+    doc.moveTo(40, y).lineTo(555, y).stroke('#d0d0d0');
+    y += 8;
+
+    doc.font('Helvetica').fontSize(10);
+    breakdown.lineItems.forEach((item) => {
+      doc.text(String(item.name || 'Item'), 40, y, { width: 220 });
+      doc.text(String(item.quantity), 265, y, { width: 50, align: 'right' });
+      doc.text(`${formatCurrency(item.unitPrice)} ${currencyCode}`, 320, y, { width: 100, align: 'right' });
+      doc.text(`${formatCurrency(item.lineTotal)} ${currencyCode}`, 425, y, { width: 130, align: 'right' });
+      y += 18;
+    });
+
+    y += 6;
+    doc.moveTo(40, y).lineTo(555, y).stroke('#d0d0d0');
+    y += 10;
+
+    doc.font('Helvetica').fontSize(10);
+    doc.text(`Taxable Amount (GST inclusive split): ${formatCurrency(breakdown.taxableAmount)} ${currencyCode}`, 300, y, { width: 255, align: 'right' });
+    y += 16;
+    doc.text(`GST Total @ ${formatCurrency(breakdown.gstRatePercent)}%: ${formatCurrency(breakdown.gstAmount)} ${currencyCode}`, 300, y, { width: 255, align: 'right' });
+    y += 16;
+    doc.font('Helvetica-Bold').fontSize(11).text(`Grand Total: ${formatCurrency(breakdown.grandTotal)} ${currencyCode}`, 300, y, { width: 255, align: 'right' });
+
+    y += 30;
+    doc.font('Helvetica').fontSize(9).fillColor('#555555').text('This is a system-generated GST invoice.', 40, y, { width: 515, align: 'center' });
+
+    doc.end();
+  });
+}
+
 function buildEmailHtml(orders, sessionId, currency, total) {
   const rows = orders
     .map((order) => {
@@ -180,7 +325,7 @@ function buildEmailHtml(orders, sessionId, currency, total) {
   `;
 }
 
-async function sendOrderConfirmationEmail({ to, orders, sessionId, currency = 'INR', totalAmount = 0 }) {
+async function sendOrderConfirmationEmail({ to, orders, sessionId, currency = 'INR', totalAmount = 0, attachments = [] }) {
   ensureEmailConfig();
 
   const html = buildEmailHtml(orders, sessionId, currency, totalAmount);
@@ -192,6 +337,7 @@ async function sendOrderConfirmationEmail({ to, orders, sessionId, currency = 'I
       to,
       subject: 'Payment Successful - Order Confirmation',
       html,
+      attachments,
     }, 'Unable to send order confirmation email');
     console.info(`[mail] Order confirmation sent. sessionId=${sessionId} to=${to} messageId=${info?.messageId || 'n/a'}`);
   } catch (err) {
@@ -229,6 +375,7 @@ async function sendDeliveryStatusEmail({ to, orderName, deliveryStatus }) {
 }
 
 module.exports = {
+  generateGstInvoiceAttachment,
   sendOrderConfirmationEmail,
   sendDeliveryStatusEmail,
 };

@@ -1,7 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CartContext } from '../Context/CartContext';
-import { AuthContext } from '../Context/AuthContext';
 import '../CSS/PaymentSuccess.css';
 
 
@@ -10,7 +9,6 @@ function PaymentSuccess() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { cartItems, clearCart } = useContext(CartContext);
-  const { userEmail, setUserProfile } = useContext(AuthContext);
   const API = import.meta.env.VITE_API;
 
   const [loading, setLoading] = useState(true);
@@ -61,17 +59,9 @@ function PaymentSuccess() {
           throw new Error('Payment is not completed yet.');
         }
 
-        const storedCustomerEmail = sessionStorage.getItem('pendingCustomerEmail') || '';
-        const resolvedCustomerEmail = verifyData.customerEmail || userEmail || storedCustomerEmail;
-
-        if (!resolvedCustomerEmail) {
-          throw new Error('Payment completed, but customer email was not found in Stripe session or shared auth state.');
+        if (!verifyData.customerEmail) {
+          throw new Error('Payment completed, but customer email was not found in Stripe session.');
         }
-
-        setUserProfile((currentUser) => ({
-          ...(currentUser || {}),
-          email: resolvedCustomerEmail,
-        }));
 
         const storedAddress = JSON.parse(sessionStorage.getItem('pendingCheckoutAddress') || 'null');
         const shippingAddress = verifyData.shippingAddress || storedAddress;
@@ -87,7 +77,7 @@ function PaymentSuccess() {
           setMessage('Payment successful. No pending cart items were found to convert into orders.');
           setPaymentMeta({
             sessionId: verifyData.sessionId,
-            customerEmail: resolvedCustomerEmail,
+            customerEmail: verifyData.customerEmail,
           });
           sessionStorage.setItem(processedKey, '1');
           sessionStorage.removeItem('pendingCheckoutItems');
@@ -106,7 +96,7 @@ function PaymentSuccess() {
             totalAmount: Number(verifyData.amountTotal || 0),
             stripeSessionId: verifyData.sessionId,
             paymentStatus: verifyData.paymentStatus,
-            customerEmail: resolvedCustomerEmail,
+            customerEmail: verifyData.customerEmail,
             shippingAddress,
           };
 
@@ -129,7 +119,7 @@ function PaymentSuccess() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               stripeSessionId: verifyData.sessionId,
-              customerEmail: resolvedCustomerEmail,
+              customerEmail: verifyData.customerEmail,
               currency: verifyData.currency || 'INR',
             }),
           });
@@ -150,7 +140,7 @@ function PaymentSuccess() {
         clearCart();
         setPaymentMeta({
           sessionId: verifyData.sessionId,
-          customerEmail: resolvedCustomerEmail,
+          customerEmail: verifyData.customerEmail,
           shippingAddress,
         });
         setMessage('Payment successful and your order has been placed.');

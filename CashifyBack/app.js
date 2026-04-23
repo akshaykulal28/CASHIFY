@@ -8,7 +8,7 @@ const productRoutes = require('./routes/productRoutes');
 const OrderRouter = require('./routes/OrderRouter');
 const PhoneSubmissionRouter = require('./routes/PhoneSubmissionRouter');
 const Order = require('./models/Order');
-const { sendOrderConfirmationEmail } = require('./utils/mailService');
+const { generateGstInvoiceAttachment, sendOrderConfirmationEmail } = require('./utils/mailService');
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || process.env.STIPE_SECRET_KEY;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const stripe = require('stripe')(stripeSecretKey);
@@ -164,12 +164,29 @@ app.post('/api/payment/stripe-webhook', express.raw({ type: 'application/json' }
 
     if (!alreadySent && customerEmail && sessionOrders.length) {
       const computedTotal = sessionOrders.reduce((sum, order) => sum + (Number(order.price || 0) * Number(order.quantity || 0)), 0);
+      let attachments = [];
+
+      try {
+        const invoiceAttachment = await generateGstInvoiceAttachment({
+          orders: sessionOrders,
+          sessionId,
+          currency: (enrichedSession.currency || 'inr').toUpperCase(),
+          totalAmount: computedTotal,
+        });
+
+        attachments = [invoiceAttachment];
+        console.info(`[stripe-webhook] GST invoice generated. sessionId=${sessionId} bytes=${invoiceAttachment.content?.length || 0}`);
+      } catch (invoiceError) {
+        console.error(`[stripe-webhook] GST invoice generation failed. sessionId=${sessionId}`, invoiceError);
+      }
+
       await sendOrderConfirmationEmail({
         to: customerEmail,
         orders: sessionOrders,
         sessionId,
         currency: (enrichedSession.currency || 'inr').toUpperCase(),
         totalAmount: computedTotal,
+        attachments,
       });
 
       await Order.updateMany(

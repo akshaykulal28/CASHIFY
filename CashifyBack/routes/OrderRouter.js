@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const Order = require('../models/Order');
-const { sendOrderConfirmationEmail, sendDeliveryStatusEmail } = require('../utils/mailService');
+const { generateGstInvoiceAttachment, sendOrderConfirmationEmail, sendDeliveryStatusEmail } = require('../utils/mailService');
 
 
 
@@ -96,8 +96,21 @@ router.post('/send-confirmation', async (req, res) => {
         const computedTotal = sessionOrders.reduce((sum, order) => {
             return sum + (Number(order.price || 0) * Number(order.quantity || 0));
         }, 0);
+        let attachments = [];
 
-        const shippingAddress = sessionOrders.find((order) => order.shippingAddress)?.shippingAddress || null;
+        try {
+            const invoiceAttachment = await generateGstInvoiceAttachment({
+                orders: sessionOrders,
+                sessionId: stripeSessionId,
+                currency,
+                totalAmount: computedTotal,
+            });
+
+            attachments = [invoiceAttachment];
+            console.info(`[order] GST invoice generated. sessionId=${stripeSessionId} bytes=${invoiceAttachment.content?.length || 0}`);
+        } catch (invoiceError) {
+            console.error(`[order] GST invoice generation failed. sessionId=${stripeSessionId}`, invoiceError);
+        }
 
         await sendOrderConfirmationEmail({
             to,
@@ -105,6 +118,7 @@ router.post('/send-confirmation', async (req, res) => {
             sessionId: stripeSessionId,
             currency,
             totalAmount: computedTotal,
+            attachments,
         });
         console.info(`[order] send-confirmation success. sessionId=${stripeSessionId} recipient=${to}`);
 
